@@ -1,19 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useState } from "react";
+import CountryData from "../CountryData.json";
 
 export default function Capitals() {
-    // useEffect(() => {
-    //     fetch("")
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             const jsonObject = JSON.parse(data);
-    //             console.log(jsonObject);
-    //         })
-    //         .catch(error => {
-    //             console.error('Error:', error);
-    //         });
-    // }, []);
+   const [index, setIndex] = useState(0);
 
-    return (
-        <h1>Hello Capitals</h1>
-    );
+   function getRandomCountry() {
+      setIndex(Math.floor(Math.random() * CountryData.length));
+   }
+
+   return (
+      <>
+         <h1>{CountryData[index].name}</h1>
+         <button onClick={getRandomCountry}>Get Random Country</button>
+      </>
+   );
 }
