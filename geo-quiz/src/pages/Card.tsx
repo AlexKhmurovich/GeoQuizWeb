@@ -1,4 +1,4 @@
-function Card(props) {
+function Card(props: any) {
    return (
       <div className="border-sky-600 border-2 p-2 m-2 rounded-lg flex flex-col gap-1">
          <img src={props.img} />

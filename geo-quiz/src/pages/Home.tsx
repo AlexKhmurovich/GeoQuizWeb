@@ -1,4 +1,4 @@
-import Card from "./Card.js";
+import Card from "./Card.tsx";
 
 export default function Home() {
    return (
