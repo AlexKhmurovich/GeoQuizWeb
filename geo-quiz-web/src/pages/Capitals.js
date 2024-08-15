@@ -8,18 +8,29 @@ export default function Capitals() {
    const [userInput, setUserInput] = useState("");
    const [showResponse, setShowResponse] = useState(false);
 
+   let [score, setScore] = useState(0);
+   let [currentQuestion, setCurrentQuestion] = useState(1);
+   const [question, setQuestion] = useState(5);
+   const [gameOver, setGameOver] = useState(false);
+
    function getRandomCountry() {
       setIndex(Math.floor(Math.random() * CountryData.length));
    }
 
    function checkUserAnswer() {
-      if (userInput.trim().toUpperCase() == CountryData[index].capital) {
-         console.log("Right");
-         setShowResponse(true);
+      if (currentQuestion < question && !gameOver) {
+         if (userInput.trim().toUpperCase() == CountryData[index].capital) {
+            console.log("Right");
+            setScore((score += 1));
+            setShowResponse(true);
+         }
+      } else {
+         setGameOver(true);
+         return;
       }
-
       setTimeout(() => {
          setShowResponse(false);
+         setCurrentQuestion((currentQuestion += 1));
          setUserInput("");
          getRandomCountry();
       }, 1000);
@@ -27,17 +38,38 @@ export default function Capitals() {
 
    return (
       <>
-         <h1 className="text-5xl">Capitals</h1>
-         <h1>{CountryData[index].name[0]}</h1>
-         <input
-            placeholder="Enter the capital"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-         />
-         <h1 className={showResponse ? "block" : "hidden"}>Correct</h1>
-         <button className="block" onClick={checkUserAnswer}>
-            Submit
-         </button>
+         <div>
+            <h1>Number of Questions</h1>
+            <input
+               type="number"
+               defaultValue={question}
+               value={question}
+               onChange={(e) => setQuestion(e.currentTarget.value)}
+            />
+         </div>
+         <div className="flex flex-col items-center w-full">
+            <h1 className="text-5xl">Capitals</h1>
+            <h1 className={gameOver ? "hidden" : "block"}>
+               {CountryData[index].name[0]}
+            </h1>
+            <h1>Score: {score}</h1>
+            <h1>
+               Question: {currentQuestion} / {question}
+            </h1>
+            <input
+               placeholder="Enter the capital"
+               value={userInput}
+               onChange={(e) => setUserInput(e.target.value)}
+               className={gameOver ? "hidden" : "block"}
+            />
+            <h1 className={showResponse ? "block" : "hidden"}>Correct</h1>
+            <button
+               className={gameOver ? "hidden" : "block"}
+               onClick={checkUserAnswer}
+            >
+               Submit
+            </button>
+         </div>
       </>
    );
 }
