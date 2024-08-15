@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import CountryData from "../CountryData.json";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function Capitals() {
    const [index, setIndex] = useState(
@@ -56,19 +58,21 @@ export default function Capitals() {
             <h1>
                Question: {currentQuestion} / {question}
             </h1>
-            <input
+            <Input
                placeholder="Enter the capital"
                value={userInput}
                onChange={(e) => setUserInput(e.target.value)}
-               className={(gameOver ? "hidden " : "block ") + "bg-transparent"}
+               className={
+                  (gameOver ? "hidden " : "block ") + "bg-transparent mb-2"
+               }
             />
             <h1 className={showResponse ? "block" : "hidden"}>Correct</h1>
-            <button
+            <Button
                className={gameOver ? "hidden" : "block"}
                onClick={checkUserAnswer}
             >
                Submit
-            </button>
+            </Button>
          </div>
       </>
    );
