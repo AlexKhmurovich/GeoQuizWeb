@@ -1,22 +1,22 @@
-import Card from "./Card.tsx";
+import ModeCard from "./ModeCard";
 
 export default function Home() {
    return (
       <div className="App">
          <h1 className="font-bold">Welcome to GeoQuiz</h1>
-         <div className="flex">
-            <Card
+         <div className="flex flex-row gap-2">
+            <ModeCard
                title="Flags"
                description="Guess the flags of the world's countries."
-               img="asdf"
+               img="../assets/flags.jpg"
                link="/flags"
-            ></Card>
-            <Card
+            ></ModeCard>
+            <ModeCard
                title="Capitals"
                description="Guess the capitals of the world's countries."
-               img="asdf"
+               img="../assets/capitals.jpg"
                link="/capitals"
-            ></Card>
+            ></ModeCard>
          </div>
       </div>
    );

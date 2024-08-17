@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import CountryData from "../CountryData.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 export default function PlayView(props: any) {
    const [index, setIndex] = useState(
@@ -11,6 +12,8 @@ export default function PlayView(props: any) {
    const [isCorrect, setIsCorrect] = useState(false);
    const [isWrong, setIsWrong] = useState(false);
 
+   const [setttingsSet, setSettingsSet] = useState(false);
+
    let [score, setScore] = useState(0);
    let [currentQuestion, setCurrentQuestion] = useState(1);
    const [question, setQuestion] = useState(5);
@@ -18,6 +21,10 @@ export default function PlayView(props: any) {
 
    function getRandomCountry() {
       setIndex(Math.floor(Math.random() * CountryData.length));
+   }
+
+   function capitalize(str: String) {
+      return str[0].toUpperCase() + str.slice(1).toLowerCase();
    }
 
    function checkUserAnswer() {
@@ -48,19 +55,49 @@ export default function PlayView(props: any) {
    }
 
    return (
-      <>
-         <div>
-            <h1>Number of Questions:</h1>
-            <input
+      <div className="flex items-center justify-center">
+         <div
+            className={
+               "w-fit border-[1px] rounded-lg p-2 " +
+               (!setttingsSet ? "flex flex-col" : "hidden")
+            }
+         >
+            <h1 className="mb-2">Settings</h1>
+            <Separator />
+            <h1 className="text-left mt-2">Number of Questions</h1>
+            <Input
                type="number"
-               defaultValue={question}
+               min={1}
                value={question}
-               onChange={(e) => setQuestion(Number(e.currentTarget.value))}
+               onChange={(e) =>
+                  setQuestion(
+                     Number(e.currentTarget.value) > 1
+                        ? Number(e.currentTarget.value)
+                        : 1
+                  )
+               }
             />
+            <Button
+               variant="outline"
+               className="mt-2"
+               onClick={() => setSettingsSet(true)}
+            >
+               Done
+            </Button>
          </div>
-         <div className="flex flex-col items-center w-full">
+         <div
+            className={
+               "flex flex-col items-center w-full " +
+               (setttingsSet ? "block" : "hidden")
+            }
+         >
             <h1 className="text-4xl font-bold mb-10">{props.mode}</h1>
-            <h1 className={(gameOver ? "hidden " : "block ") + "text-2xl"}>
+            <h1
+               className={
+                  (gameOver ? "hidden " : "block ") +
+                  "text-xl font-light text-gray-500"
+               }
+            >
                {props.questionString}
             </h1>
             {props.mode == "Flags" ? (
@@ -73,7 +110,9 @@ export default function PlayView(props: any) {
                   }
                />
             ) : (
-               <h1>{CountryData[index].name[0]}</h1>
+               <h1 className="text-2xl font-semibold">
+                  {capitalize(CountryData[index].name[0])}
+               </h1>
             )}
 
             <div className="w-96 mt-4 mb-2">
@@ -94,7 +133,14 @@ export default function PlayView(props: any) {
                            : "")
                      }
                   >
-                     {isCorrect ? "Correct" : isWrong ? "Wrong" : ""}
+                     {isCorrect
+                        ? "Correct"
+                        : isWrong
+                        ? "Wrong, the correct answer is " +
+                          (props.mode == "Flags"
+                             ? CountryData[index].name[0]
+                             : capitalize(CountryData[index].capital[0]))
+                        : ""}
                   </h1>
                </div>
                <Input
@@ -113,6 +159,6 @@ export default function PlayView(props: any) {
                Submit
             </Button>
          </div>
-      </>
+      </div>
    );
 }
