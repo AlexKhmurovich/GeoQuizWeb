@@ -34,7 +34,7 @@ export default function Home() {
                link="/shapes"
             ></ModeCard>
             <Popover>
-               <PopoverTrigger className="absolute bottom-1 right-1 text-gray-200">
+               <PopoverTrigger className="fixed bottom-1 right-1 text-gray-200">
                   Credits
                </PopoverTrigger>
                <PopoverContent className="w-96">
