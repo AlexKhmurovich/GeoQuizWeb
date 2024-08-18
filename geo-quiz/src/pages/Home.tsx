@@ -20,6 +20,12 @@ export default function Home() {
                img={CapitalsImg}
                link="/capitals"
             ></ModeCard>
+            <ModeCard
+               title="Shapes"
+               description="Guess the shapes of the world's countries."
+               img={CapitalsImg}
+               link="/shapes"
+            ></ModeCard>
             <WorldMap />
          </div>
       </div>

@@ -3,6 +3,8 @@ import CountryData from "../CountryData.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
    Card,
    CardContent,
@@ -35,27 +37,44 @@ export default function PlayView(props: any) {
 
    const [usedIndexes, setUsedIndexes] = useState<number[]>([]);
 
+   const [penalizeMistakes, setPenalizeMistakes] = useState(false);
+
    const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
 
    function getRandomCountry() {
+      setUsedIndexes([...usedIndexes, index]);
       do {
          setIndex(Math.floor(Math.random() * CountryData.length));
       } while (usedIndexes.includes(index));
+   }
 
-      setUsedIndexes([...usedIndexes, index]);
+   function renderSwitch(mode: string) {
+      switch (mode) {
+         case "Flags":
+            return "bar";
+         case "Shapes":
+            return "bar";
+         case "Capitals":
+            return "bar";
+         default:
+            return "foo";
+      }
    }
 
    async function checkUserAnswer() {
       if (
-         (props.mode === "Flags" &&
+         (props.mode === ("Flags" || "Shapes") &&
             CountryData[index].name.includes(userInput.trim().toUpperCase())) ||
-         (props.mode !== "Flags" &&
+         (props.mode !== "Capitals" &&
             CountryData[index].capital.includes(userInput.trim().toUpperCase()))
       ) {
          console.log("Right");
          setScore((score += 1));
          setIsCorrect(true);
       } else {
+         if (penalizeMistakes) {
+            setScore((score -= 1));
+         }
          setIsWrong(true);
       }
 
@@ -92,7 +111,7 @@ export default function PlayView(props: any) {
 
             <div
                className={
-                  "w-fit border-[1px] rounded-lg p-2 mt-32 " +
+                  "w-fit border-[1px] rounded-lg p-4 mt-32 " +
                   (!setttingsSet ? "flex flex-col" : "hidden")
                }
             >
@@ -111,6 +130,14 @@ export default function PlayView(props: any) {
                      )
                   }
                />
+               <div className="flex items-center space-x-2 mt-2">
+                  <Switch
+                     id="penalizeMistakes"
+                     checked={penalizeMistakes}
+                     onCheckedChange={(checked) => setPenalizeMistakes(checked)}
+                  />
+                  <Label htmlFor="penalizeMistakes">-1 for mistakes</Label>
+               </div>
                <Button
                   variant="outline"
                   className="mt-2"
@@ -216,7 +243,7 @@ export default function PlayView(props: any) {
                            : isWrong
                            ? "Wrong, the correct answer is " +
                              (props.mode == "Flags"
-                                ? CountryData[index].name[0]
+                                ? titleize(CountryData[index].name[0])
                                 : titleize(CountryData[index].capital[0]))
                            : ""}
                      </h1>
