@@ -2,7 +2,7 @@ import * as React from "react";
 import { SVGProps } from "react";
 const WorldMap = (props: SVGProps<SVGSVGElement>) => (
    <svg
-      className="block opacity-20"
+      className="block opacity-15"
       width="100%"
       height="100%"
       viewBox="0 0 2000 857"

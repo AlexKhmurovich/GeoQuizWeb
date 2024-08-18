@@ -48,14 +48,56 @@ export default function PlayView(props: any) {
       } while (usedIndexes.includes(index));
    }
 
-   function renderSwitch(mode: string) {
+   function renderQuestion(mode: string) {
       switch (mode) {
          case "Flags":
-            return "bar";
+            return (
+               <img
+                  src={CountryData[index]["onlineFlag"]}
+                  alt="Flag"
+                  className={
+                     (gameOver ? "hidden " : "block ") +
+                     "rounded-lg w-72 shadow-lg"
+                  }
+               />
+            );
          case "Shapes":
-            return "bar";
+            return (
+               <img
+                  src={CountryData[index]["onlineShape"]}
+                  alt="Shape"
+                  className={
+                     (gameOver ? "hidden " : "block ") +
+                     "rounded-lg w-72 border-black"
+                  }
+               />
+            );
          case "Capitals":
-            return "bar";
+            return (
+               <h1
+                  className={
+                     (gameOver ? "hidden " : "block ") +
+                     "text-2xl font-semibold"
+                  }
+               >
+                  {titleize(CountryData[index].name[0])}
+               </h1>
+            );
+         default:
+            return "foo";
+      }
+   }
+
+   function renderCorrectAnswer(mode: string) {
+      switch (mode) {
+         case "Flags":
+            return titleize(CountryData[index].name[0]);
+         case "Shapes":
+            return titleize(CountryData[index].name[0]);
+
+         case "Capitals":
+            return titleize(CountryData[index].capital[0]);
+
          default:
             return "foo";
       }
@@ -111,7 +153,7 @@ export default function PlayView(props: any) {
 
             <div
                className={
-                  "w-fit border-[1px] rounded-lg p-4 mt-32 " +
+                  "w-fit border-[1px] rounded-lg p-4 px-12 mt-32 bg-white " +
                   (!setttingsSet ? "flex flex-col" : "hidden")
                }
             >
@@ -161,26 +203,7 @@ export default function PlayView(props: any) {
                >
                   {props.questionString}
                </h1>
-               {props.mode == "Flags" ? (
-                  <img
-                     src={CountryData[index]["onlineFlag"]}
-                     alt="Flag"
-                     className={
-                        (gameOver ? "hidden " : "block ") +
-                        "rounded-lg w-72 border-black shadow-lg"
-                     }
-                  />
-               ) : (
-                  <h1
-                     className={
-                        (gameOver ? "hidden " : "block ") +
-                        "text-2xl font-semibold"
-                     }
-                  >
-                     {titleize(CountryData[index].name[0])}
-                  </h1>
-               )}
-
+               {renderQuestion(props.mode)}
                <div className="w-96 mt-4 mb-2">
                   <div
                      className={
@@ -242,9 +265,7 @@ export default function PlayView(props: any) {
                            ? "Correct"
                            : isWrong
                            ? "Wrong, the correct answer is " +
-                             (props.mode == "Flags"
-                                ? titleize(CountryData[index].name[0])
-                                : titleize(CountryData[index].capital[0]))
+                             renderCorrectAnswer(props.mode)
                            : ""}
                      </h1>
                   </div>
