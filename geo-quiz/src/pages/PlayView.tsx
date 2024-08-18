@@ -3,6 +3,16 @@ import CountryData from "../CountryData.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import {
+   Card,
+   CardContent,
+   CardDescription,
+   CardFooter,
+   CardHeader,
+   CardTitle,
+} from "@/components/ui/card";
+
+import WorldMap from "@/assets/WorldMap";
 
 import { ChevronLeft } from "lucide-react";
 
@@ -25,6 +35,8 @@ export default function PlayView(props: any) {
 
    const [usedIndexes, setUsedIndexes] = useState<number[]>([]);
 
+   const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
+
    function getRandomCountry() {
       do {
          setIndex(Math.floor(Math.random() * CountryData.length));
@@ -33,12 +45,12 @@ export default function PlayView(props: any) {
       setUsedIndexes([...usedIndexes, index]);
    }
 
-   function checkUserAnswer() {
+   async function checkUserAnswer() {
       if (
-         userInput.trim().toUpperCase() ==
-         (props.mode == "Flags"
-            ? CountryData[index].name[0]
-            : CountryData[index].capital[0])
+         (props.mode === "Flags" &&
+            CountryData[index].name.includes(userInput.trim().toUpperCase())) ||
+         (props.mode !== "Flags" &&
+            CountryData[index].capital.includes(userInput.trim().toUpperCase()))
       ) {
          console.log("Right");
          setScore((score += 1));
@@ -47,11 +59,11 @@ export default function PlayView(props: any) {
          setIsWrong(true);
       }
 
-      setTimeout(() => {
-         console.log("");
-      }, 1000);
+      await delay(1000);
 
       if (currentQuestion == question || gameOver) {
+         setIsCorrect(false);
+         setIsWrong(false);
          setGameOver(true);
          return;
       }
@@ -80,7 +92,7 @@ export default function PlayView(props: any) {
 
             <div
                className={
-                  "w-fit border-[1px] rounded-lg p-2 " +
+                  "w-fit border-[1px] rounded-lg p-2 mt-32 " +
                   (!setttingsSet ? "flex flex-col" : "hidden")
                }
             >
@@ -104,7 +116,7 @@ export default function PlayView(props: any) {
                   className="mt-2"
                   onClick={() => setSettingsSet(true)}
                >
-                  Done
+                  Start
                </Button>
             </div>
 
@@ -143,19 +155,52 @@ export default function PlayView(props: any) {
                )}
 
                <div className="w-96 mt-4 mb-2">
-                  <div className="flex flex-col items-start w-full">
-                     <h1>
-                        <b>Score:</b> {score}
-                     </h1>
-                     <h1>
-                        <b>Question:</b> {currentQuestion} / {question}
-                     </h1>
-                     <a
-                        href={props.mode}
-                        className={!gameOver ? "hidden " : "block "}
+                  <div
+                     className={
+                        "flex flex-col w-full" +
+                        (gameOver ? "" : " items-start")
+                     }
+                  >
+                     <div
+                        className={
+                           "text-left " + (gameOver ? "hidden " : "block ")
+                        }
                      >
-                        <Button>Restart</Button>
-                     </a>
+                        <h1>
+                           <b>Score:</b> {score}
+                        </h1>
+                        <h1>
+                           <b>Question:</b> {currentQuestion} / {question}
+                        </h1>
+                     </div>
+
+                     <Card
+                        className={
+                           !gameOver
+                              ? "hidden "
+                              : "flex flex-col " + " justify-center"
+                        }
+                     >
+                        <CardHeader>
+                           <CardTitle>Game Over</CardTitle>
+                           <CardDescription>
+                              Here's how you did.
+                           </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <h1>
+                              <b>Your final score is: </b> {score}
+                           </h1>
+                           <h1>
+                              <b>You've completed:</b> {currentQuestion} Q
+                           </h1>
+                        </CardContent>
+                        <CardFooter className="justify-center">
+                           <a href={props.mode}>
+                              <Button>Restart</Button>
+                           </a>
+                        </CardFooter>
+                     </Card>
                      <h1
                         className={
                            (isCorrect || isWrong ? "block " : "hidden ") +
@@ -187,8 +232,7 @@ export default function PlayView(props: any) {
                      }}
                      onSubmit={checkUserAnswer}
                      className={
-                        (gameOver ? "hidden " : "block ") +
-                        "bg-transparent mt-2"
+                        (gameOver ? "hidden " : "block ") + "bg-white mt-2"
                      }
                   />
                </div>
@@ -200,6 +244,7 @@ export default function PlayView(props: any) {
                </Button>
             </div>
          </div>
+         <WorldMap />
       </div>
    );
 }
