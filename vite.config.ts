@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
 export default defineConfig({
+  base:"/geoquizweb/",
   plugins: [react()],
-  base:"/geoquizweb",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
