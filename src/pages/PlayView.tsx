@@ -105,9 +105,9 @@ export default function PlayView(props: any) {
 
    async function checkUserAnswer() {
       if (
-         (props.mode === ("Flags" || "Shapes") &&
+         ((props.mode == "Flags" || props.mode == "Shapes") &&
             CountryData[index].name.includes(userInput.trim().toUpperCase())) ||
-         (props.mode !== "Capitals" &&
+         (props.mode == "Capitals" &&
             CountryData[index].capital.includes(userInput.trim().toUpperCase()))
       ) {
          console.log("Right");
