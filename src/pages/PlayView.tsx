@@ -35,17 +35,12 @@ export default function PlayView(props: any) {
    const [question, setQuestion] = useState(5);
    const [gameOver, setGameOver] = useState(false);
 
-   const [usedIndexes, setUsedIndexes] = useState<number[]>([]);
-
    const [penalizeMistakes, setPenalizeMistakes] = useState(false);
 
    const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
 
    function getRandomCountry() {
-      setUsedIndexes([...usedIndexes, index]);
-      do {
-         setIndex(Math.floor(Math.random() * CountryData.length));
-      } while (usedIndexes.includes(index));
+      setIndex(Math.floor(Math.random() * CountryData.length));
    }
 
    function renderQuestion(mode: string) {
@@ -57,7 +52,7 @@ export default function PlayView(props: any) {
                   alt="Flag"
                   className={
                      (gameOver ? "hidden " : "block ") +
-                     "rounded-lg w-72 shadow-lg"
+                     "rounded-lg w-full max-w-xs shadow-lg"
                   }
                />
             );
@@ -68,7 +63,7 @@ export default function PlayView(props: any) {
                   alt="Shape"
                   className={
                      (gameOver ? "hidden " : "block ") +
-                     "rounded-lg w-72 border-black"
+                     "rounded-lg w-full max-w-xs border-black"
                   }
                />
             );
@@ -137,23 +132,25 @@ export default function PlayView(props: any) {
    }
 
    return (
-      <div className="flex items-center justify-center h-full ">
-         <div className={"flex flex-col items-center w-full h-full "}>
-            <div className="flex justify-around items-center w-full">
+      <div className="flex items-center justify-center h-full p-4 sm:p-8 ">
+         <div className="flex flex-col items-center w-full h-full">
+            <div className="flex justify-between items-center w-full">
                <a href="/" className="flex-1 flex items-start">
                   <Button variant={"link"}>
                      <ChevronLeft />
                      Home
                   </Button>
                </a>
-               <h1 className="text-2xl font-bold m-2">{props.mode}</h1>
+               <h1 className="text-xl sm:text-2xl font-bold m-2">
+                  {props.mode}
+               </h1>
                <div className="w-6 flex-1"></div>
             </div>
             <Separator className="mb-4" />
 
             <div
                className={
-                  "w-fit border-[1px] rounded-lg p-4 px-12 mt-32 bg-white " +
+                  "w-full max-w-md border-[1px] rounded-lg p-4 sm:px-12 mt-4 sm:mt-8 bg-white " +
                   (!setttingsSet ? "flex flex-col" : "hidden")
                }
             >
@@ -191,20 +188,20 @@ export default function PlayView(props: any) {
 
             <div
                className={
-                  "flex flex-col items-center w-full h-full mt-32 " +
+                  "flex flex-col items-center w-full h-full mt-4 sm:mt-8 " +
                   (setttingsSet ? "block" : "hidden")
                }
             >
                <h1
                   className={
                      (gameOver ? "hidden " : "block ") +
-                     "text-xl text-gray-500 mb-2"
+                     "text-lg sm:text-xl text-gray-500 mb-2"
                   }
                >
                   {props.questionString}
                </h1>
                {renderQuestion(props.mode)}
-               <div className="w-96 mt-4 mb-2">
+               <div className="w-full max-w-md mt-4 mb-2">
                   <div
                      className={
                         "flex flex-col w-full" +

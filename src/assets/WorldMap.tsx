@@ -2,8 +2,6 @@ import { SVGProps } from "react";
 const WorldMap = (props: SVGProps<SVGSVGElement>) => (
    <svg
       className="block opacity-15"
-      width="100%"
-      height="100%"
       viewBox="0 0 2000 857"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -11,14 +9,17 @@ const WorldMap = (props: SVGProps<SVGSVGElement>) => (
       xmlSpace="preserve"
       // xmlns:serif="http://www.serif.com/"
       style={{
+         height: "100vh",
+         objectFit: "fill",
          fillRule: "evenodd",
          clipRule: "evenodd",
          strokeLinecap: "round",
          strokeLinejoin: "round",
-         position: "absolute",
+         position: "fixed",
          zIndex: "-1",
-         top: "0",
-         left: "0",
+         top: "50%",
+         left: "50%",
+         transform: "translate(-50%, -50%)",
       }}
       {...props}
    >

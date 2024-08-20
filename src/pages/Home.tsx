@@ -12,9 +12,9 @@ import {
 
 export default function Home() {
    return (
-      <div className="flex flex-col items-center mt-32 justify-center">
+      <div className="flex flex-col items-center sm:mt-[1rem] lg:mt-[10%] justify-center mb-1">
          <h1 className="text-2xl font-bold mb-4">Welcome to GeoQuiz</h1>
-         <div className="flex flex-col sm:flex-row gap-2">
+         <div className="flex flex-col sm:flex-row gap-2 mb-2">
             <ModeCard
                title="Flags"
                description="Guess the flags of the world's countries."
