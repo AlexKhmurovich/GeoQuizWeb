@@ -3,6 +3,7 @@ import FlagsImg from "../assets/flags.jpg";
 import CapitalsImg from "../assets/capitals.jpg";
 import ShapesImg from "../assets/shapes.jpg";
 import WorldMap from "../assets/WorldMap";
+import Banner from "../assets/banner.png";
 
 import {
    Popover,
@@ -13,7 +14,7 @@ import {
 export default function Home() {
    return (
       <div className="flex flex-col items-center sm:mt-[1rem] lg:mt-[10%] justify-center mb-1">
-         <h1 className="text-2xl font-bold mb-4">Welcome to GeoQuiz</h1>
+         <img src={Banner} alt="GeoQuiz Logo" className="sm:w-72 w-[70%]" />
          <div className="flex flex-col sm:flex-row gap-2 mb-2">
             <ModeCard
                title="Flags"
