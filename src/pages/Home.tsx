@@ -5,6 +5,8 @@ import ShapesImg from "../assets/shapes.jpg";
 import WorldMap from "../assets/WorldMap";
 import Banner from "../assets/banner.png";
 
+import SupportPopover from "./SupportPopover";
+
 import {
    Popover,
    PopoverContent,
@@ -35,10 +37,10 @@ export default function Home() {
                link="/shapes"
             ></ModeCard>
             <Popover>
-               <PopoverTrigger className="fixed bottom-1 right-1 text-gray-200">
+               <PopoverTrigger className="fixed top-1 right-1 text-stone-200">
                   Credits
                </PopoverTrigger>
-               <PopoverContent className="w-96">
+               <PopoverContent>
                   Photo by{" "}
                   <a href="https://unsplash.com/@joey_csunyo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
                      Joey Csunyo
@@ -73,6 +75,7 @@ export default function Home() {
                </PopoverContent>
             </Popover>
 
+            <SupportPopover></SupportPopover>
             <WorldMap />
          </div>
       </div>

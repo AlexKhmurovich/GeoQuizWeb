@@ -16,6 +16,8 @@ import {
 
 import WorldMap from "@/assets/WorldMap";
 
+import SupportPopover from "./SupportPopover";
+
 import { ChevronLeft } from "lucide-react";
 
 import titleize from "titleize";
@@ -289,6 +291,7 @@ export default function PlayView(props: any) {
                </Button>
             </div>
          </div>
+         <SupportPopover></SupportPopover>
          <WorldMap />
       </div>
    );
