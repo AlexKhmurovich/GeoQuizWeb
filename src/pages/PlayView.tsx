@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+
+import { Settings, Play, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import {
    Card,
    CardContent,
@@ -34,7 +38,7 @@ export default function PlayView(props: any) {
 
    let [score, setScore] = useState(0);
    let [currentQuestion, setCurrentQuestion] = useState(1);
-   const [question, setQuestion] = useState(5);
+   const [question, setQuestion] = useState<number | "">(5);
    const [gameOver, setGameOver] = useState(false);
 
    const [penalizeMistakes, setPenalizeMistakes] = useState(false);
@@ -133,6 +137,25 @@ export default function PlayView(props: any) {
       getRandomCountry();
    }
 
+   const [showWarning, setShowWarning] = useState(false);
+
+   const handleStart = () => {
+      if (question === "" || question < 1) {
+         setShowWarning(true);
+         return;
+      }
+      setShowWarning(false);
+      setSettingsSet(true);
+   };
+
+   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value === "" ? "" : parseInt(e.target.value);
+      setQuestion(value);
+      if (value !== "" && value >= 1) {
+         setShowWarning(false);
+      }
+   };
+
    return (
       <div className="flex items-center justify-center h-full p-4 sm:p-8 ">
          <div className="flex flex-col items-center w-full h-full">
@@ -150,7 +173,7 @@ export default function PlayView(props: any) {
             </div>
             <Separator className="mb-4" />
 
-            <div
+            {/* <div
                className={
                   "w-full max-w-md border-[1px] rounded-lg p-4 sm:px-12 mt-4 sm:mt-8 bg-white " +
                   (!setttingsSet ? "flex flex-col" : "hidden")
@@ -186,6 +209,78 @@ export default function PlayView(props: any) {
                >
                   Start
                </Button>
+            </div> */}
+
+            {/* VO */}
+            <div
+               className={
+                  "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +
+                  (!setttingsSet ? "flex flex-col" : "hidden")
+               }
+            >
+               <div className="flex items-center space-x-2 text-gray-800 mb-4">
+                  <Settings className="w-5 h-5" aria-hidden="true" />
+                  <h2 className="text-xl font-bold">Quiz Settings</h2>
+               </div>
+
+               <div className="space-y-4">
+                  <div className="text-left">
+                     <Label
+                        htmlFor="numQuestions"
+                        className="text-gray-700 text-left"
+                     >
+                        Number of Questions
+                     </Label>
+                     <Input
+                        id="numQuestions"
+                        type="number"
+                        min="1"
+                        value={question}
+                        onChange={handleInputChange}
+                        className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
+                        aria-describedby="numQuestionsError"
+                     />
+                  </div>
+
+                  <div className="flex items-center">
+                     <Switch
+                        id="penalizeWrong"
+                        checked={penalizeMistakes}
+                        onCheckedChange={(checked) =>
+                           setPenalizeMistakes(checked)
+                        }
+                     />
+                     <Label
+                        htmlFor="penalizeWrong"
+                        className="text-gray-700 ml-2"
+                     >
+                        -1 for mistakes
+                     </Label>
+                  </div>
+               </div>
+
+               <div className="mt-4" aria-live="polite">
+                  {showWarning && (
+                     <Alert
+                        variant="destructive"
+                        className="mb-4 py-2 text-sm"
+                        id="numQuestionsError"
+                     >
+                        <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                        <AlertDescription>
+                           Please enter a valid number of questions (minimum 1).
+                        </AlertDescription>
+                     </Alert>
+                  )}
+
+                  <Button
+                     onClick={handleStart}
+                     className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-full transition-all duration-200 ease-in-out flex items-center justify-center h-12 hover:scale-[0.98] active:scale-[0.97]"
+                  >
+                     <Play className="w-4 h-4 mr-2" aria-hidden="true" />
+                     Start Quiz
+                  </Button>
+               </div>
             </div>
 
             <div
