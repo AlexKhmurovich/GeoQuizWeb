@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Trophy, RotateCcw } from "lucide-react";
 
 import { Settings, Play, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -283,6 +284,37 @@ export default function PlayView(props: any) {
                </div>
             </div>
 
+            {/* V0 */}
+            <div
+               className={
+                  "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +
+                  (!gameOver ? "hidden " : "flex flex-col " + " justify-center")
+               }
+            >
+               <div className="flex items-center space-x-2 text-gray-800 mb-4">
+                  <Trophy className="w-5 h-5" aria-hidden="true" />
+                  <h2 className="text-xl font-bold">Quiz Results</h2>
+               </div>
+
+               <div className="space-y-4 text-center">
+                  <div className="text-4xl font-bold text-gray-800">
+                     {score} / {question}
+                  </div>
+                  <div className="text-gray-600">
+                     {Math.round((score / Number(question)) * 100)}% accuracy
+                  </div>
+               </div>
+
+               <div className="mt-8">
+                  <a href={props.mode}>
+                     <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-full transition-all duration-200 ease-in-out flex items-center justify-center h-12 hover:scale-[0.98] active:scale-[0.97]">
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Restart Quiz
+                     </Button>
+                  </a>
+               </div>
+            </div>
+
             <div
                className={
                   "flex flex-col items-center w-full h-full mt-4 sm:mt-8 " +
@@ -318,33 +350,6 @@ export default function PlayView(props: any) {
                         </h1>
                      </div>
 
-                     <Card
-                        className={
-                           !gameOver
-                              ? "hidden "
-                              : "flex flex-col " + " justify-center"
-                        }
-                     >
-                        <CardHeader>
-                           <CardTitle>Game Over</CardTitle>
-                           <CardDescription>
-                              Here's how you did.
-                           </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           <h1>
-                              <b>Your final score is: </b> {score}
-                           </h1>
-                           <h1>
-                              <b>You've completed:</b> {currentQuestion} Q
-                           </h1>
-                        </CardContent>
-                        <CardFooter className="justify-center">
-                           <a href={props.mode}>
-                              <Button>Restart</Button>
-                           </a>
-                        </CardFooter>
-                     </Card>
                      <h1
                         className={
                            (isCorrect || isWrong ? "block " : "hidden ") +
