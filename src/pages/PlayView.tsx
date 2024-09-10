@@ -10,15 +10,6 @@ import { Trophy, RotateCcw } from "lucide-react";
 import { Settings, Play, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import {
-   Card,
-   CardContent,
-   CardDescription,
-   CardFooter,
-   CardHeader,
-   CardTitle,
-} from "@/components/ui/card";
-
 import WorldMap from "@/assets/WorldMap";
 
 import SupportPopover from "./SupportPopover";
