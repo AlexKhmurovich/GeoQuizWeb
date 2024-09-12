@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ModeCard(props: any) {
    return (
-      <Card className="flex flex-col items-center shadow-lg">
+      <Card className="flex flex-col items-center shadow-lg bg-gradient-to-br from-white to-gray-100">
          <CardHeader>
             <CardTitle>{props.title}</CardTitle>
             <CardDescription>{props.description}</CardDescription>

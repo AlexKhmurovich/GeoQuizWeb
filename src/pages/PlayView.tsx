@@ -7,8 +7,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Trophy, RotateCcw } from "lucide-react";
 
-import { Settings, Play, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Settings, Play, AlertCircle, BadgeCheck } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+import { AnimatedCounter } from "react-animated-counter";
 
 import WorldMap from "@/assets/WorldMap";
 
@@ -32,6 +34,8 @@ export default function PlayView(props: any) {
    let [currentQuestion, setCurrentQuestion] = useState(1);
    const [question, setQuestion] = useState<number | "">(5);
    const [gameOver, setGameOver] = useState(false);
+
+   const [amountCorrect, setAmountCorrect] = useState(0);
 
    const [penalizeMistakes, setPenalizeMistakes] = useState(false);
 
@@ -105,6 +109,7 @@ export default function PlayView(props: any) {
       ) {
          console.log("Right");
          setScore((score += 1));
+         setAmountCorrect(amountCorrect + 1);
          setIsCorrect(true);
       } else {
          if (penalizeMistakes) {
@@ -292,7 +297,8 @@ export default function PlayView(props: any) {
                      {score} / {question}
                   </div>
                   <div className="text-gray-600">
-                     {Math.round((score / Number(question)) * 100)}% accuracy
+                     {Math.round((amountCorrect / Number(question)) * 100)}%
+                     accuracy
                   </div>
                </div>
 
@@ -324,40 +330,58 @@ export default function PlayView(props: any) {
                <div className="w-full max-w-md mt-4 mb-2">
                   <div
                      className={
-                        "flex flex-col w-full" +
-                        (gameOver ? "" : " items-start")
+                        "flex flex-col w-full justify-between " +
+                        (gameOver ? "" : " ")
                      }
                   >
                      <div
                         className={
-                           "text-left " + (gameOver ? "hidden " : "block ")
+                           "flex items-center justify-between " +
+                           (gameOver ? "hidden " : " ")
                         }
                      >
-                        <h1>
-                           <b>Score:</b> {score}
+                        <h1 className="flex items-center text-left justify-start border border-gray-200 bg-white rounded-full px-2 py-1">
+                           <b className="mr-1">Score: </b>
+                           <AnimatedCounter
+                              value={score}
+                              decimalPrecision={0}
+                              fontSize="16px"
+                              digitStyles={{ textAlign: "left" }}
+                           />
                         </h1>
-                        <h1>
+                        <h1 className="border border-gray-200 bg-white rounded-full text-center px-2 py-1">
                            <b>Question:</b> {currentQuestion} / {question}
                         </h1>
                      </div>
 
-                     <h1
-                        className={
-                           (isCorrect || isWrong ? "block " : "hidden ") +
-                           (isCorrect
-                              ? "text-green-600 font-bold"
-                              : isWrong
-                              ? "text-red-600 font-bold"
-                              : "")
-                        }
-                     >
-                        {isCorrect
-                           ? "Correct"
-                           : isWrong
-                           ? "Wrong, the correct answer is " +
-                             renderCorrectAnswer(props.mode)
-                           : ""}
-                     </h1>
+                     {isWrong && (
+                        <Alert variant="destructive" className="text-left mt-2">
+                           <AlertCircle
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                           />
+                           <AlertTitle>Wrong</AlertTitle>
+                           <AlertDescription>
+                              The correct answer is{" "}
+                              {renderCorrectAnswer(props.mode)}
+                           </AlertDescription>
+                        </Alert>
+                     )}
+
+                     {isCorrect && (
+                        <Alert
+                           variant="default"
+                           className="text-green-500 text-left mt-2"
+                        >
+                           <BadgeCheck
+                              className="h-4 w-4 "
+                              aria-hidden="true"
+                              color="rgb(34 197 94)"
+                           />
+                           <AlertTitle>Correct</AlertTitle>
+                           <AlertDescription>Good Job!</AlertDescription>
+                        </Alert>
+                     )}
                   </div>
                   <Input
                      placeholder="Enter the answer"
