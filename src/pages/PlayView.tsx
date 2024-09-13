@@ -54,7 +54,7 @@ export default function PlayView(props: any) {
                   alt="Flag"
                   className={
                      (gameOver ? "hidden " : "block ") +
-                     "rounded-lg w-full max-w-xs shadow-lg"
+                     "rounded-lg w-full max-w-xs max-h-xs shadow-lg"
                   }
                />
             );
@@ -65,7 +65,7 @@ export default function PlayView(props: any) {
                   alt="Shape"
                   className={
                      (gameOver ? "hidden " : "block ") +
-                     "rounded-lg w-full max-w-xs border-black"
+                     "rounded-lg w-full max-w-xs max-h-xs border-black"
                   }
                />
             );
@@ -388,8 +388,10 @@ export default function PlayView(props: any) {
                      value={userInput}
                      onChange={(e) => setUserInput(e.target.value)}
                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                           checkUserAnswer();
+                        if (!isCorrect && !isWrong) {
+                           if (event.key === "Enter") {
+                              checkUserAnswer();
+                           }
                         }
                      }}
                      onSubmit={checkUserAnswer}
