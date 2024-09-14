@@ -6,6 +6,7 @@ import Flags from "./pages/Flags";
 import Capitals from "./pages/Capitals";
 import Shapes from "./pages/Shapes";
 import Domains from "./pages/Domains";
+import Anthems from "./pages/Anthems";
 
 function App() {
    return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/capitals" element={<Capitals />} />
             <Route path="/shapes" element={<Shapes />} />
             <Route path="/domains" element={<Domains />} />
+            <Route path="/anthems" element={<Anthems />} />
          </Routes>
       </Router>
    );

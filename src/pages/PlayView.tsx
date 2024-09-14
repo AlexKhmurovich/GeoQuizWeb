@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import CountryData from "../CountryData.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,15 @@ export default function PlayView(props: any) {
    const [penalizeMistakes, setPenalizeMistakes] = useState(false);
 
    const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
+
+   const audioRef = useRef<HTMLAudioElement>(null);
+
+   useEffect(() => {
+      if (gameOver && audioRef.current) {
+         audioRef.current.pause();
+         audioRef.current.currentTime = 0; // Reset the audio to the beginning
+      }
+   }, [gameOver]);
 
    function getRandomCountry() {
       setIndex(Math.floor(Math.random() * CountryData.length));
@@ -91,6 +100,16 @@ export default function PlayView(props: any) {
                   {titleize(CountryData[index].name[0])}
                </h1>
             );
+         case "Anthems":
+            return (
+               <audio
+                  ref={audioRef}
+                  controls
+                  autoPlay={setttingsSet ? true : false}
+                  src={CountryData[index].onlineAnthem}
+                  className={gameOver ? "hidden " : "block "}
+               ></audio>
+            );
          default:
             return "foo";
       }
@@ -106,6 +125,8 @@ export default function PlayView(props: any) {
             return titleize(CountryData[index].capital[0]);
          case "Domains":
             return titleize("." + CountryData[index].domain.toLowerCase());
+         case "Anthems":
+            return titleize(CountryData[index].name[0]);
          default:
             return "foo";
       }
@@ -113,7 +134,9 @@ export default function PlayView(props: any) {
 
    async function checkUserAnswer() {
       if (
-         ((props.mode == "Flags" || props.mode == "Shapes") &&
+         ((props.mode == "Flags" ||
+            props.mode == "Shapes" ||
+            props.mode == "Anthems") &&
             CountryData[index].name.includes(userInput.trim().toUpperCase())) ||
          (props.mode == "Capitals" &&
             CountryData[index].capital.includes(
