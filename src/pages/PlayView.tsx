@@ -80,6 +80,17 @@ export default function PlayView(props: any) {
                   {titleize(CountryData[index].name[0])}
                </h1>
             );
+         case "Domains":
+            return (
+               <h1
+                  className={
+                     (gameOver ? "hidden " : "block ") +
+                     "text-2xl font-semibold"
+                  }
+               >
+                  {titleize(CountryData[index].name[0])}
+               </h1>
+            );
          default:
             return "foo";
       }
@@ -91,10 +102,10 @@ export default function PlayView(props: any) {
             return titleize(CountryData[index].name[0]);
          case "Shapes":
             return titleize(CountryData[index].name[0]);
-
          case "Capitals":
             return titleize(CountryData[index].capital[0]);
-
+         case "Domains":
+            return titleize("." + CountryData[index].domain.toLowerCase());
          default:
             return "foo";
       }
@@ -105,7 +116,12 @@ export default function PlayView(props: any) {
          ((props.mode == "Flags" || props.mode == "Shapes") &&
             CountryData[index].name.includes(userInput.trim().toUpperCase())) ||
          (props.mode == "Capitals" &&
-            CountryData[index].capital.includes(userInput.trim().toUpperCase()))
+            CountryData[index].capital.includes(
+               userInput.trim().toUpperCase()
+            )) ||
+         (props.mode == "Domains" &&
+            CountryData[index].domain ==
+               userInput.trim().replace(".", "").toLowerCase())
       ) {
          console.log("Right");
          setScore((score += 1));

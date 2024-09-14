@@ -2,6 +2,7 @@ import ModeCard from "./ModeCard";
 import FlagsImg from "../assets/flags.jpg";
 import CapitalsImg from "../assets/capitals.jpg";
 import ShapesImg from "../assets/shapes.jpg";
+import DomainsImg from "../assets/domains.jpg";
 import WorldMap from "../assets/WorldMap";
 import Banner from "../assets/banner.png";
 
@@ -17,7 +18,7 @@ export default function Home() {
    return (
       <div className="flex flex-col items-center sm:mt-[1rem] lg:mt-[10%] justify-center mb-1">
          <img src={Banner} alt="GeoQuiz Logo" className="sm:w-72 w-[70%]" />
-         <div className="flex flex-col sm:flex-row gap-2 mb-2">
+         <div className="flex flex-col md:flex-row gap-2 mb-2">
             <ModeCard
                title="Flags"
                description="Guess the flags of the world's countries."
@@ -35,6 +36,12 @@ export default function Home() {
                description="Guess the shapes of the world's countries."
                img={ShapesImg}
                link="/shapes"
+            ></ModeCard>
+            <ModeCard
+               title="Domains"
+               description="Guess the top level domains of the world's countries."
+               img={DomainsImg}
+               link="/domains"
             ></ModeCard>
             <Popover>
                <PopoverTrigger className="fixed top-1 right-1 text-stone-200">
@@ -65,6 +72,15 @@ export default function Home() {
                   </a>{" "}
                   on{" "}
                   <a href="https://unsplash.com/photos/white-red-and-green-map-7dEyTJ7-8os?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+                     Unsplash
+                  </a>
+                  <br />
+                  Photo by{" "}
+                  <a href="https://unsplash.com/@nasa?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+                     NASA
+                  </a>{" "}
+                  on{" "}
+                  <a href="https://unsplash.com/photos/photo-of-outer-space-Q1p7bh3SHj8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
                      Unsplash
                   </a>
                   <br />

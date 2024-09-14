@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Flags from "./pages/Flags";
 import Capitals from "./pages/Capitals";
 import Shapes from "./pages/Shapes";
+import Domains from "./pages/Domains";
 
 function App() {
    return (
@@ -14,6 +15,7 @@ function App() {
             <Route path="/flags" element={<Flags />} />
             <Route path="/capitals" element={<Capitals />} />
             <Route path="/shapes" element={<Shapes />} />
+            <Route path="/domains" element={<Domains />} />
          </Routes>
       </Router>
    );
