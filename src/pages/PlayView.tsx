@@ -46,6 +46,8 @@ export default function PlayView(props: any) {
    const [question, setQuestion] = useState<number | "">(5);
    const [gameOver, setGameOver] = useState(false);
 
+   const [questionString, setQuestionString] = useState("");
+
    const [amountCorrect, setAmountCorrect] = useState(0);
 
    const [penalizeMistakes, setPenalizeMistakes] = useState(false);
@@ -122,7 +124,16 @@ export default function PlayView(props: any) {
                ></audio>
             );
          default:
-            return "foo";
+            return (
+               <h1
+                  className={
+                     (gameOver ? "hidden " : "block ") +
+                     "text-2xl font-semibold"
+                  }
+               >
+                  {titleize(CountryData[index].name[0])}
+               </h1>
+            );
       }
    }
 
@@ -199,6 +210,25 @@ export default function PlayView(props: any) {
       ) {
          setShowWarning(true);
          return;
+      }
+      switch (modeAType) {
+         case "Capitals":
+            setQuestionString("Name the capital of:");
+            break;
+         case "Anthems":
+            setQuestionString("Name the country with this anthem:");
+            break;
+         case "Flags":
+            setQuestionString("Name this flag:");
+            break;
+         case "Shapes":
+            setQuestionString("Name this shape:");
+            break;
+         case "Domains":
+            setQuestionString("Name the domain of:");
+            break;
+         default:
+            setQuestionString("Name this country:");
       }
       setShowWarning(false);
       setSettingsSet(true);
@@ -412,9 +442,9 @@ export default function PlayView(props: any) {
                      "text-lg sm:text-xl text-gray-500 mb-2"
                   }
                >
-                  {props.questionString}
+                  {questionString}
                </h1>
-               {renderQuestion(modeQType)}
+               {setttingsSet ? renderQuestion(modeQType) : ""}
                <div className="w-full max-w-md mt-4 mb-2">
                   <div
                      className={
