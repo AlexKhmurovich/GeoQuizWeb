@@ -4,6 +4,7 @@ import CapitalsImg from "../assets/capitals.jpg";
 import ShapesImg from "../assets/shapes.jpg";
 import DomainsImg from "../assets/domains.jpg";
 import AnthemsImg from "../assets/anthems.jpg";
+import ComboImg from "../assets/combo.jpg";
 import WorldMap from "../assets/WorldMap";
 import Banner from "../assets/banner.png";
 
@@ -50,6 +51,12 @@ export default function Home() {
                img={AnthemsImg}
                link="/anthems"
             ></ModeCard>
+            <ModeCard
+               title="Combo"
+               description="Guess anything about the world's countries."
+               img={ComboImg}
+               link="/combo"
+            ></ModeCard>
             <Popover>
                <PopoverTrigger className="fixed top-1 right-1 text-stone-200">
                   Credits
@@ -88,6 +95,15 @@ export default function Home() {
                   </a>{" "}
                   on{" "}
                   <a href="https://unsplash.com/photos/photo-of-outer-space-Q1p7bh3SHj8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+                     Unsplash
+                  </a>
+                  <br />
+                  Photo by{" "}
+                  <a href="https://unsplash.com/@ashkfor121?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+                     Ashkan Forouzani
+                  </a>{" "}
+                  on{" "}
+                  <a href="https://unsplash.com/photos/green-red-and-yellow-wall-m0l9NBCivuk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
                      Unsplash
                   </a>
                   <br />

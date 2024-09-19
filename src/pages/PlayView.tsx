@@ -5,6 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+   Select,
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
+} from "@/components/ui/select";
+
 import { Trophy, RotateCcw } from "lucide-react";
 
 import { Settings, Play, AlertCircle, BadgeCheck } from "lucide-react";
@@ -27,6 +35,9 @@ export default function PlayView(props: any) {
    const [userInput, setUserInput] = useState("");
    const [isCorrect, setIsCorrect] = useState(false);
    const [isWrong, setIsWrong] = useState(false);
+
+   const [modeQType, setModeQType] = useState(props.mode);
+   const [modeAType, setModeAType] = useState(props.mode);
 
    const [setttingsSet, setSettingsSet] = useState(false);
 
@@ -54,8 +65,8 @@ export default function PlayView(props: any) {
       setIndex(Math.floor(Math.random() * CountryData.length));
    }
 
-   function renderQuestion(mode: string) {
-      switch (mode) {
+   function renderQuestion(modeQ: string) {
+      switch (modeQ) {
          case "Flags":
             return (
                <img
@@ -115,11 +126,13 @@ export default function PlayView(props: any) {
       }
    }
 
-   function renderCorrectAnswer(mode: string) {
-      switch (mode) {
+   function renderCorrectAnswer(modeA: string) {
+      switch (modeA) {
          case "Flags":
             return titleize(CountryData[index].name[0]);
          case "Shapes":
+            return titleize(CountryData[index].name[0]);
+         case "Countries":
             return titleize(CountryData[index].name[0]);
          case "Capitals":
             return titleize(CountryData[index].capital[0]);
@@ -134,15 +147,16 @@ export default function PlayView(props: any) {
 
    async function checkUserAnswer() {
       if (
-         ((props.mode == "Flags" ||
-            props.mode == "Shapes" ||
-            props.mode == "Anthems") &&
+         ((modeAType == "Flags" ||
+            modeAType == "Shapes" ||
+            modeAType == "Anthems" ||
+            modeAType == "Countries") &&
             CountryData[index].name.includes(userInput.trim().toUpperCase())) ||
-         (props.mode == "Capitals" &&
+         (modeAType == "Capitals" &&
             CountryData[index].capital.includes(
                userInput.trim().toUpperCase()
             )) ||
-         (props.mode == "Domains" &&
+         (modeAType == "Domains" &&
             CountryData[index].domain ==
                userInput.trim().replace(".", "").toLowerCase())
       ) {
@@ -176,7 +190,13 @@ export default function PlayView(props: any) {
    const [showWarning, setShowWarning] = useState(false);
 
    const handleStart = () => {
-      if (question === "" || question < 1) {
+      if (
+         question === "" ||
+         question < 1 ||
+         modeQType == "Combo" ||
+         modeAType == "Combo" ||
+         modeQType == modeAType
+      ) {
          setShowWarning(true);
          return;
       }
@@ -209,45 +229,6 @@ export default function PlayView(props: any) {
             </div>
             <Separator className="mb-4" />
 
-            {/* <div
-               className={
-                  "w-full max-w-md border-[1px] rounded-lg p-4 sm:px-12 mt-4 sm:mt-8 bg-white " +
-                  (!setttingsSet ? "flex flex-col" : "hidden")
-               }
-            >
-               <h1 className="mb-2 font-bold">Settings</h1>
-               <Separator />
-               <h1 className="text-left mt-2">Number of Questions</h1>
-               <Input
-                  type="number"
-                  min={1}
-                  value={question}
-                  onChange={(e) =>
-                     setQuestion(
-                        Number(e.currentTarget.value) > 1
-                           ? Number(e.currentTarget.value)
-                           : 1
-                     )
-                  }
-               />
-               <div className="flex items-center space-x-2 mt-2">
-                  <Switch
-                     id="penalizeMistakes"
-                     checked={penalizeMistakes}
-                     onCheckedChange={(checked) => setPenalizeMistakes(checked)}
-                  />
-                  <Label htmlFor="penalizeMistakes">-1 for mistakes</Label>
-               </div>
-               <Button
-                  variant="outline"
-                  className="mt-2"
-                  onClick={() => setSettingsSet(true)}
-               >
-                  Start
-               </Button>
-            </div> */}
-
-            {/* VO */}
             <div
                className={
                   "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +
@@ -260,6 +241,72 @@ export default function PlayView(props: any) {
                </div>
 
                <div className="space-y-4">
+                  {props.mode == "Combo" ? (
+                     <div className="text-left">
+                        <div className="flex w-100 space-x-4">
+                           <div className="flex-1">
+                              <Label
+                                 htmlFor="questionType"
+                                 className="text-gray-700 text-left"
+                              >
+                                 Question Type
+                              </Label>
+                              <Select
+                                 onValueChange={(value: string) => {
+                                    setModeQType(value);
+                                 }}
+                              >
+                                 <SelectTrigger id="questionType">
+                                    <SelectValue placeholder="Select" />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                    <SelectItem value="Flags">Flag</SelectItem>
+                                    <SelectItem value="Shapes">
+                                       Shape
+                                    </SelectItem>
+                                    <SelectItem value="Anthems">
+                                       Anthem
+                                    </SelectItem>
+                                    <SelectItem value="Countries">
+                                       Country
+                                    </SelectItem>
+                                 </SelectContent>
+                              </Select>
+                           </div>
+
+                           <div className="flex-1">
+                              <Label
+                                 htmlFor="answerType"
+                                 className="text-gray-700 text-left"
+                              >
+                                 Answer Type
+                              </Label>
+                              <Select
+                                 onValueChange={(value: string) => {
+                                    setModeAType(value);
+                                 }}
+                              >
+                                 <SelectTrigger id="answerType">
+                                    <SelectValue placeholder="Select" />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                    <SelectItem value="Capitals">
+                                       Capital
+                                    </SelectItem>
+                                    <SelectItem value="Domains">
+                                       Domain
+                                    </SelectItem>
+                                    <SelectItem value="Countries">
+                                       Country
+                                    </SelectItem>
+                                 </SelectContent>
+                              </Select>
+                           </div>
+                        </div>
+                     </div>
+                  ) : (
+                     ""
+                  )}
                   <div className="text-left">
                      <Label
                         htmlFor="numQuestions"
@@ -277,7 +324,6 @@ export default function PlayView(props: any) {
                         aria-describedby="numQuestionsError"
                      />
                   </div>
-
                   <div className="flex items-center">
                      <Switch
                         id="penalizeWrong"
@@ -304,7 +350,10 @@ export default function PlayView(props: any) {
                      >
                         <AlertCircle className="h-4 w-4" aria-hidden="true" />
                         <AlertDescription>
-                           Please enter a valid number of questions (minimum 1).
+                           Please enter a valid number of questions (minimum 1){" "}
+                           {props.mode == "Combo"
+                              ? "and/or Please select different question and answer types"
+                              : ""}
                         </AlertDescription>
                      </Alert>
                   )}
@@ -365,7 +414,7 @@ export default function PlayView(props: any) {
                >
                   {props.questionString}
                </h1>
-               {renderQuestion(props.mode)}
+               {renderQuestion(modeQType)}
                <div className="w-full max-w-md mt-4 mb-2">
                   <div
                      className={
@@ -402,7 +451,7 @@ export default function PlayView(props: any) {
                            <AlertTitle>Wrong</AlertTitle>
                            <AlertDescription>
                               The correct answer is{" "}
-                              {renderCorrectAnswer(props.mode)}
+                              {renderCorrectAnswer(modeAType)}
                            </AlertDescription>
                         </Alert>
                      )}
