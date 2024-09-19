@@ -206,7 +206,7 @@ export default function PlayView(props: any) {
          question < 1 ||
          modeQType == "Combo" ||
          modeAType == "Combo" ||
-         modeQType == modeAType
+         (props.mode == "Combo" && (modeQType == modeAType))
       ) {
          setShowWarning(true);
          return;
