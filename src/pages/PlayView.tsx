@@ -206,11 +206,13 @@ export default function PlayView(props: any) {
          question < 1 ||
          modeQType == "Combo" ||
          modeAType == "Combo" ||
-         modeQType == modeAType
+         ((modeQType == "Combo" || modeAType == "Combo") &&
+            modeQType == modeAType)
       ) {
          setShowWarning(true);
          return;
       }
+
       switch (modeAType) {
          case "Capitals":
             setQuestionString("Name the capital of:");
@@ -520,7 +522,9 @@ export default function PlayView(props: any) {
                </div>
                <Button
                   className={gameOver ? "hidden" : "block"}
-                  onClick={checkUserAnswer}
+                  onClick={() => {
+                     checkUserAnswer();
+                  }}
                >
                   Submit
                </Button>

@@ -41,7 +41,7 @@ export default function Home() {
             ></ModeCard>
             <ModeCard
                title="Domains"
-               description="Guess the top level domains of the world's countries."
+               description="Guess the TLDs of the world's countries."
                img={DomainsImg}
                link="/domains"
             ></ModeCard>
