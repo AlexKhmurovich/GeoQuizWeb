@@ -4,7 +4,7 @@
 
 🔗 [**GeoQuiz.pro**](https://geoquiz.pro)
 
-> Helping spread the love of geography.
+> Helping spread the love for geography.
 
 ## 📚 About
 

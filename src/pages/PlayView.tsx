@@ -45,6 +45,8 @@ export default function PlayView(props: any) {
    let [currentQuestion, setCurrentQuestion] = useState(1);
    const [question, setQuestion] = useState<number | "">(5);
    const [gameOver, setGameOver] = useState(false);
+   const [blinkTimer, setBlinkTimer] = useState(1);
+   const [blinkMode, setBlinkMode] = useState(false);
 
    const [questionString, setQuestionString] = useState("");
 
@@ -71,25 +73,53 @@ export default function PlayView(props: any) {
       switch (modeQ) {
          case "Flags":
             return (
-               <img
-                  src={CountryData[index]["onlineFlag"]}
-                  alt="Flag"
-                  className={
-                     (gameOver ? "hidden " : "block ") +
-                     "rounded-lg w-full max-w-xs max-h-xs shadow-lg"
-                  }
-               />
+               <div>
+                  <img
+                     src={CountryData[index]["onlineFlag"]}
+                     alt="Flag"
+                     className={
+                        (gameOver ? "hidden " : "block ") +
+                        "rounded-lg w-full max-w-xs max-h-xs shadow-lg " +
+                        (blinkMode ? "animate-blink" : "")
+                     }
+                     key={index}
+                  />
+                  <style>{`
+               @keyframes blink {
+                 0% { opacity: 1; }
+                 99% { opacity: 1; }
+                 100% { opacity: 0; }
+               }
+               .animate-blink {
+                 animation: blink ${blinkTimer}s forwards;
+               }
+            `}</style>
+               </div>
             );
          case "Shapes":
             return (
-               <img
-                  src={CountryData[index]["onlineShape"]}
-                  alt="Shape"
-                  className={
-                     (gameOver ? "hidden " : "block ") +
-                     "rounded-lg w-full max-w-xs max-h-xs border-black"
-                  }
-               />
+               <div>
+                  <img
+                     src={CountryData[index]["onlineShape"]}
+                     alt="Shape"
+                     className={
+                        (gameOver ? "hidden " : "block ") +
+                        "rounded-lg w-full max-w-xs max-h-xs " +
+                        (blinkMode ? "animate-blink" : "")
+                     }
+                     key={index}
+                  />
+                  <style>{`
+               @keyframes blink {
+                0% { opacity: 1; }
+                99% { opacity: 1; }
+                100% { opacity: 0; }
+               }
+               .animate-blink {
+                animation: blink ${blinkTimer}s forwards;
+               }
+            `}</style>
+               </div>
             );
          case "Capitals":
             return (
@@ -356,20 +386,64 @@ export default function PlayView(props: any) {
                         aria-describedby="numQuestionsError"
                      />
                   </div>
-                  <div className="flex items-center">
-                     <Switch
-                        id="penalizeWrong"
-                        checked={penalizeMistakes}
-                        onCheckedChange={(checked) =>
-                           setPenalizeMistakes(checked)
-                        }
-                     />
-                     <Label
-                        htmlFor="penalizeWrong"
-                        className="text-gray-700 ml-2"
-                     >
-                        -1 for mistakes
-                     </Label>
+                  <div className="flex flex-col space-y-2">
+                     <div className="flex items-center">
+                        <Switch
+                           id="penalizeWrong"
+                           checked={penalizeMistakes}
+                           onCheckedChange={(checked) =>
+                              setPenalizeMistakes(checked)
+                           }
+                        />
+                        <Label
+                           htmlFor="penalizeWrong"
+                           className="text-gray-700 ml-2"
+                        >
+                           -1 for mistakes
+                        </Label>
+                     </div>
+
+                     {(props.mode == "Flags" ||
+                        (props.mode == "Combo" &&
+                           (modeQType == "Flags" || modeQType == "Shapes")) ||
+                        props.mode == "Shapes") && (
+                        <div className="flex items-center">
+                           <Switch
+                              id="blinkModeToggle"
+                              checked={blinkMode}
+                              onCheckedChange={(checked) =>
+                                 setBlinkMode(checked)
+                              }
+                           />
+                           <Label
+                              htmlFor="blinkModeToggle"
+                              className="text-gray-700 ml-2"
+                           >
+                              Blink Mode
+                           </Label>
+                        </div>
+                     )}
+
+                     {blinkMode && (
+                        <div className="text-left">
+                           <Label
+                              htmlFor="blinkTimer"
+                              className="text-gray-700 text-left"
+                           >
+                              Blink Timer (s)
+                           </Label>
+                           <Input
+                              id="blinkTimer"
+                              type="number"
+                              min="1"
+                              value={blinkTimer}
+                              onChange={(e) =>
+                                 setBlinkTimer(parseFloat(e.target.value))
+                              }
+                              className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
+                           />
+                        </div>
+                     )}
                   </div>
                </div>
 
