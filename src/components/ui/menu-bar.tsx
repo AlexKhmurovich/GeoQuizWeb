@@ -98,7 +98,7 @@ export function MenuBar({ onModeChange }: MenuBarProps) {
             variants={navGlowVariants}
          />
          <ul className="flex items-center gap-2 relative z-10">
-            {menuItems.map((item, index) => {
+            {menuItems.map((item) => {
                const isSelected = selectedItem === item.label;
 
                // Create a brighter version of the gradient for selected items
