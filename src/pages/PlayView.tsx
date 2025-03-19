@@ -32,6 +32,8 @@ export default function PlayView(props: any) {
    const [index, setIndex] = useState(
       Math.floor(Math.random() * CountryData.length)
    );
+   // Add a state to track used countries
+   const [usedCountries, setUsedCountries] = useState<number[]>([]);
    const [userInput, setUserInput] = useState("");
    const [isCorrect, setIsCorrect] = useState(false);
    const [isWrong, setIsWrong] = useState(false);
@@ -65,8 +67,30 @@ export default function PlayView(props: any) {
       }
    }, [gameOver]);
 
+   // Replace the old getRandomCountry function with this improved version
    function getRandomCountry() {
-      setIndex(Math.floor(Math.random() * CountryData.length));
+      // If all countries have been used, reset the used countries array
+      if (usedCountries.length >= CountryData.length - 1) {
+         setUsedCountries([index]); // Keep current index to avoid immediate repeat
+
+         // Get a random country that isn't the current one
+         let newIndex;
+         do {
+            newIndex = Math.floor(Math.random() * CountryData.length);
+         } while (newIndex === index);
+
+         setIndex(newIndex);
+         return;
+      }
+
+      // Otherwise, find a country that hasn't been used yet
+      let newIndex;
+      do {
+         newIndex = Math.floor(Math.random() * CountryData.length);
+      } while (usedCountries.includes(newIndex) || newIndex === index);
+
+      setIndex(newIndex);
+      setUsedCountries([...usedCountries, newIndex]);
    }
 
    function renderQuestion(modeQ: string) {
@@ -218,6 +242,8 @@ export default function PlayView(props: any) {
          setIsCorrect(false);
          setIsWrong(false);
          setGameOver(true);
+         // Reset used countries when game is over
+         setUsedCountries([]);
          return;
       }
 
@@ -263,7 +289,10 @@ export default function PlayView(props: any) {
             setQuestionString("Name this country:");
       }
       setShowWarning(false);
-      setSettingsSet(true);
+      if (!showWarning) {
+         setUsedCountries([index]); // Initialize with current index
+         setSettingsSet(true);
+      }
    };
 
    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,13 +1,146 @@
-import ModeCard from "./ModeCard";
-import FlagsImg from "../assets/flags.jpg";
-import CapitalsImg from "../assets/capitals.jpg";
-import ShapesImg from "../assets/shapes.jpg";
-import DomainsImg from "../assets/domains.jpg";
-import AnthemsImg from "../assets/anthems.jpg";
-import ComboImg from "../assets/combo.jpg";
-import WorldMap from "../assets/WorldMap";
-import Banner from "../assets/banner.png";
+// import { useState } from "react";
+// import ModeCard from "./ModeCard";
+// import FlagsImg from "../assets/flags.jpg";
+// import CapitalsImg from "../assets/capitals.jpg";
+// import ShapesImg from "../assets/shapes.jpg";
+// import DomainsImg from "../assets/domains.jpg";
+// import AnthemsImg from "../assets/anthems.jpg";
+// import ComboImg from "../assets/combo.jpg";
+// import WorldMap from "../assets/WorldMap";
+// import Banner from "../assets/banner.png";
+// import { MenuBar } from "@/components/ui/menu-bar";
 
+// import SupportPopover from "./SupportPopover";
+
+// import {
+//    Popover,
+//    PopoverContent,
+//    PopoverTrigger,
+// } from "@/components/ui/popover";
+
+// export default function Home() {
+//    const [selectedMode, setSelectedMode] = useState("Singleplayer");
+
+//    return (
+//       <div className="flex flex-col items-center sm:mt-[1rem] lg:mt-[10%] justify-center mb-1">
+//          <img src={Banner} alt="GeoQuiz Logo" className="sm:w-72 w-[70%]" />
+//          <MenuBar onModeChange={setSelectedMode} />
+//          <div className="flex flex-col lg:flex-row gap-2 mb-2">
+//             <ModeCard
+//                title="Flags"
+//                description="Guess the flags of the world's countries."
+//                img={FlagsImg}
+//                link="/flags"
+//             ></ModeCard>
+//             <ModeCard
+//                title="Capitals"
+//                description="Guess the capitals of the world's countries."
+//                img={CapitalsImg}
+//                link="/capitals"
+//             ></ModeCard>
+//             <ModeCard
+//                title="Shapes"
+//                description="Guess the shapes of the world's countries."
+//                img={ShapesImg}
+//                link="/shapes"
+//             ></ModeCard>
+//             <ModeCard
+//                title="Domains"
+//                description="Guess the TLDs of the world's countries."
+//                img={DomainsImg}
+//                link="/domains"
+//             ></ModeCard>
+//             <ModeCard
+//                title="Anthems"
+//                description="Guess the anthems of the world's countries."
+//                img={AnthemsImg}
+//                link="/anthems"
+//             ></ModeCard>
+
+//             {selectedMode === "Singleplayer" && (
+//                <ModeCard
+//                   title="Combo"
+//                   description="Guess anything about the world's countries."
+//                   img={ComboImg}
+//                   link="/combo"
+//                ></ModeCard>
+//             )}
+
+//             <Popover>
+//                <PopoverTrigger className="fixed top-1 right-1 text-stone-200">
+//                   Credits
+//                </PopoverTrigger>
+//                <PopoverContent>
+//                   Photo by{" "}
+//                   <a href="https://unsplash.com/@joey_csunyo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Joey Csunyo
+//                   </a>{" "}
+//                   on{" "}
+//                   <a href="https://unsplash.com/photos/map-of-australia-2EGuIR00UTk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Unsplash
+//                   </a>
+//                   <br />
+//                   Photo by{" "}
+//                   <a href="https://unsplash.com/@lemonvlad?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Vladislav Klapin
+//                   </a>{" "}
+//                   on{" "}
+//                   <a href="https://unsplash.com/photos/assorted-flag-YeO44yVTl20?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Unsplash
+//                   </a>
+//                   <br />
+//                   Photo by{" "}
+//                   <a href="https://unsplash.com/@christianlue?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Christian Lue
+//                   </a>{" "}
+//                   on{" "}
+//                   <a href="https://unsplash.com/photos/white-red-and-green-map-7dEyTJ7-8os?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Unsplash
+//                   </a>
+//                   <br />
+//                   Photo by{" "}
+//                   <a href="https://unsplash.com/@nasa?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      NASA
+//                   </a>{" "}
+//                   on{" "}
+//                   <a href="https://unsplash.com/photos/photo-of-outer-space-Q1p7bh3SHj8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Unsplash
+//                   </a>
+//                   <br />
+//                   Photo by{" "}
+//                   <a href="https://unsplash.com/@ashkfor121?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Ashkan Forouzani
+//                   </a>{" "}
+//                   on{" "}
+//                   <a href="https://unsplash.com/photos/green-red-and-yellow-wall-m0l9NBCivuk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+//                      Unsplash
+//                   </a>
+//                   <br />
+//                   Photo by Vincent Peters on{" "}
+//                   <a href="https://www.pexels.com/photo/students-of-pretoria-boys-high-school-singing-during-a-school-function-5350023/">
+//                      Pexels
+//                   </a>
+//                   <br />
+//                   World Map by{" "}
+//                   <a href="https://simplemaps.com/resources/svg-world">
+//                      Simple Maps
+//                   </a>
+//                </PopoverContent>
+//             </Popover>
+
+//             <SupportPopover></SupportPopover>
+//             <WorldMap />
+//          </div>
+//       </div>
+//    );
+// }
+
+import { useState } from "react";
+import ModeCard from "./ModeCard";
+import { gameModes } from "@/config/gameModes";
+import WorldMap from "@/assets/WorldMap";
+import Banner from "../assets/banner.png";
+import { MenuBar } from "@/components/ui/menu-bar";
 import SupportPopover from "./SupportPopover";
 
 import {
@@ -17,46 +150,27 @@ import {
 } from "@/components/ui/popover";
 
 export default function Home() {
+   const [selectedMode, setSelectedMode] = useState("Singleplayer");
+
    return (
       <div className="flex flex-col items-center sm:mt-[1rem] lg:mt-[10%] justify-center mb-1">
          <img src={Banner} alt="GeoQuiz Logo" className="sm:w-72 w-[70%]" />
+         <MenuBar onModeChange={setSelectedMode} />
          <div className="flex flex-col lg:flex-row gap-2 mb-2">
-            <ModeCard
-               title="Flags"
-               description="Guess the flags of the world's countries."
-               img={FlagsImg}
-               link="/flags"
-            ></ModeCard>
-            <ModeCard
-               title="Capitals"
-               description="Guess the capitals of the world's countries."
-               img={CapitalsImg}
-               link="/capitals"
-            ></ModeCard>
-            <ModeCard
-               title="Shapes"
-               description="Guess the shapes of the world's countries."
-               img={ShapesImg}
-               link="/shapes"
-            ></ModeCard>
-            <ModeCard
-               title="Domains"
-               description="Guess the TLDs of the world's countries."
-               img={DomainsImg}
-               link="/domains"
-            ></ModeCard>
-            <ModeCard
-               title="Anthems"
-               description="Guess the anthems of the world's countries."
-               img={AnthemsImg}
-               link="/anthems"
-            ></ModeCard>
-            <ModeCard
-               title="Combo"
-               description="Guess anything about the world's countries."
-               img={ComboImg}
-               link="/combo"
-            ></ModeCard>
+            {gameModes.map(
+               (mode) =>
+                  // Only show Combo in singleplayer mode
+                  (mode.id !== "combo" || selectedMode === "Singleplayer") && (
+                     <ModeCard
+                        key={mode.id}
+                        title={mode.title}
+                        description={mode.description}
+                        img={mode.imageSrc}
+                        link={`/game/${mode.id}`}
+                     />
+                  )
+            )}
+
             <Popover>
                <PopoverTrigger className="fixed top-1 right-1 text-stone-200">
                   Credits
