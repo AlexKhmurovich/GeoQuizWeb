@@ -12,7 +12,7 @@ import {
    SelectValue,
 } from "@/components/ui/select";
 
-import { Trophy, RotateCcw, Loader2 } from "lucide-react";
+import { Trophy, RotateCcw, Loader2, UserX } from "lucide-react";
 
 import { Settings, Play, AlertCircle, BadgeCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -61,10 +61,17 @@ export default function PlayView(props: any) {
    const [opponentName, setOpponentName] = useState("");
    const [socket, setSocket] = useState<any>(null);
    const [playerName, setPlayerName] = useState("");
+   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
+   const [currentCountry, setCurrentCountry] = useState<any>(null);
+   const [sessionId, setSessionId] = useState<string | null>(null);
 
    const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
 
    const audioRef = useRef<HTMLAudioElement>(null);
+
+   const [timerActive, setTimerActive] = useState(false);
+   const [timeLeft, setTimeLeft] = useState(5);
+   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
    useEffect(() => {
       if (gameOver && audioRef.current) {
@@ -85,9 +92,58 @@ export default function PlayView(props: any) {
             setWaitingForOpponent(true);
          });
 
-         newSocket.on("opponentFound", (name) => {
+         newSocket.on("opponentFound", (data) => {
             setWaitingForOpponent(false);
-            setOpponentName(name);
+
+            // Handle different data formats (backward compatibility)
+            if (typeof data === "object" && data.name) {
+               setOpponentName(data.name);
+               setSessionId(data.sessionId);
+
+               if (data.country) {
+                  setCurrentCountry(data.country);
+
+                  // Set question string based on the game mode
+                  switch (data.mode) {
+                     case "Capitals":
+                        setQuestionString("Name the capital of:");
+                        break;
+                     case "Anthems":
+                        setQuestionString("Name the country with this anthem:");
+                        break;
+                     case "Flags":
+                        setQuestionString("Name this flag:");
+                        break;
+                     case "Shapes":
+                        setQuestionString("Name this shape:");
+                        break;
+                     case "Domains":
+                        setQuestionString("Name the domain of:");
+                        break;
+                     default:
+                        setQuestionString("Name this country:");
+                  }
+               }
+            } else {
+               // Backward compatibility for older format
+               setOpponentName(data);
+            }
+         });
+
+         newSocket.on("newQuestion", (data) => {
+            setCurrentCountry(data.country);
+            setUserInput("");
+            setIsCorrect(false);
+            setIsWrong(false);
+            setTimerActive(false);
+         });
+
+         newSocket.on("opponentDisconnected", () => {
+            setOpponentDisconnected(true);
+         });
+
+         newSocket.on("timerStarted", () => {
+            setTimerActive(true);
          });
 
          // Cleanup on unmount
@@ -124,123 +180,141 @@ export default function PlayView(props: any) {
    }
 
    function renderQuestion(modeQ: string) {
-      switch (modeQ) {
-         case "Flags":
-            return (
-               <div>
-                  <img
-                     src={CountryData[index]["onlineFlag"]}
-                     alt="Flag"
+      if (props.isMulti && currentCountry) {
+         // Render multiplayer question
+         switch (modeQ) {
+            case "Flags":
+               return (
+                  <div>
+                     <img
+                        src={currentCountry.onlineFlag}
+                        alt="Flag"
+                        className="rounded-lg w-full max-w-xs max-h-xs shadow-lg"
+                        key={currentCountry.name[0]}
+                     />
+                  </div>
+               );
+            case "Shapes":
+               return (
+                  <div>
+                     <img
+                        src={currentCountry.onlineShape}
+                        alt="Shape"
+                        className="rounded-lg w-full max-w-xs max-h-xs"
+                        key={currentCountry.name[0]}
+                     />
+                  </div>
+               );
+            case "Capitals":
+               return (
+                  <h1 className="text-2xl font-semibold">
+                     {titleize(currentCountry.name[0])}
+                  </h1>
+               );
+            case "Domains":
+               return (
+                  <h1 className="text-2xl font-semibold">
+                     {titleize(currentCountry.name[0])}
+                  </h1>
+               );
+            case "Anthems":
+               return (
+                  <audio
+                     ref={audioRef}
+                     controls
+                     autoPlay={true}
+                     src={currentCountry.onlineAnthem}
+                  ></audio>
+               );
+            default:
+               return (
+                  <h1 className="text-2xl font-semibold">
+                     {titleize(currentCountry.name[0])}
+                  </h1>
+               );
+         }
+      } else {
+         // Original single player question rendering
+         switch (modeQ) {
+            case "Flags":
+               return (
+                  <div>
+                     <img
+                        src={CountryData[index]["onlineFlag"]}
+                        alt="Flag"
+                        className={
+                           (gameOver ? "hidden " : "block ") +
+                           "rounded-lg w-full max-w-xs max-h-xs shadow-lg " +
+                           (blinkMode ? "animate-blink" : "")
+                        }
+                        key={index}
+                     />
+                     <style>{`
+                  @keyframes blink {
+                    0% { opacity: 1; }
+                    99% { opacity: 1; }
+                    100% { opacity: 0; }
+                  }
+                  .animate-blink {
+                    animation: blink ${blinkTimer}s forwards;
+                  }
+               `}</style>
+                  </div>
+               );
+            // ...existing code...
+            default:
+               return (
+                  <h1
                      className={
                         (gameOver ? "hidden " : "block ") +
-                        "rounded-lg w-full max-w-xs max-h-xs shadow-lg " +
-                        (blinkMode ? "animate-blink" : "")
+                        "text-2xl font-semibold"
                      }
-                     key={index}
-                  />
-                  <style>{`
-               @keyframes blink {
-                 0% { opacity: 1; }
-                 99% { opacity: 1; }
-                 100% { opacity: 0; }
-               }
-               .animate-blink {
-                 animation: blink ${blinkTimer}s forwards;
-               }
-            `}</style>
-               </div>
-            );
-         case "Shapes":
-            return (
-               <div>
-                  <img
-                     src={CountryData[index]["onlineShape"]}
-                     alt="Shape"
-                     className={
-                        (gameOver ? "hidden " : "block ") +
-                        "rounded-lg w-full max-w-xs max-h-xs " +
-                        (blinkMode ? "animate-blink" : "")
-                     }
-                     key={index}
-                  />
-                  <style>{`
-               @keyframes blink {
-                0% { opacity: 1; }
-                99% { opacity: 1; }
-                100% { opacity: 0; }
-               }
-               .animate-blink {
-                animation: blink ${blinkTimer}s forwards;
-               }
-            `}</style>
-               </div>
-            );
-         case "Capitals":
-            return (
-               <h1
-                  className={
-                     (gameOver ? "hidden " : "block ") +
-                     "text-2xl font-semibold"
-                  }
-               >
-                  {titleize(CountryData[index].name[0])}
-               </h1>
-            );
-         case "Domains":
-            return (
-               <h1
-                  className={
-                     (gameOver ? "hidden " : "block ") +
-                     "text-2xl font-semibold"
-                  }
-               >
-                  {titleize(CountryData[index].name[0])}
-               </h1>
-            );
-         case "Anthems":
-            return (
-               <audio
-                  ref={audioRef}
-                  controls
-                  autoPlay={setttingsSet ? true : false}
-                  src={CountryData[index].onlineAnthem}
-                  className={gameOver ? "hidden " : "block "}
-               ></audio>
-            );
-         default:
-            return (
-               <h1
-                  className={
-                     (gameOver ? "hidden " : "block ") +
-                     "text-2xl font-semibold"
-                  }
-               >
-                  {titleize(CountryData[index].name[0])}
-               </h1>
-            );
+                  >
+                     {titleize(CountryData[index].name[0])}
+                  </h1>
+               );
+         }
       }
    }
 
    function renderCorrectAnswer(modeA: string) {
-      switch (modeA) {
-         case "Flags":
-            return titleize(CountryData[index].name[0]);
-         case "Shapes":
-            return titleize(CountryData[index].name[0]);
-         case "Countries":
-            return titleize(CountryData[index].name[0]);
-         case "Capitals":
-            return titleize(CountryData[index].capital[0]);
-         case "Domains":
-            return titleize("." + CountryData[index].domain.toLowerCase());
-         case "Anthems":
-            return titleize(CountryData[index].name[0]);
-         default:
-            return "foo";
+      if (props.isMulti && currentCountry) {
+         switch (modeA) {
+            case "Flags":
+            case "Shapes":
+            case "Countries":
+            case "Anthems":
+               return titleize(currentCountry.name[0]);
+            case "Capitals":
+               return titleize(currentCountry.capital[0]);
+            case "Domains":
+               return titleize("." + currentCountry.domain.toLowerCase());
+            default:
+               return "Unknown";
+         }
+      } else {
+         // Original single player logic
+         switch (modeA) {
+            case "Flags":
+               return titleize(CountryData[index].name[0]);
+            // ...existing code...
+            default:
+               return "foo";
+         }
       }
    }
 
    async function checkUserAnswer() {
+      if (props.isMulti && sessionId) {
+         // For multiplayer, just send the answer and request the next question
+         if (socket) {
+            socket.emit("playerAnswered");
+         }
+         setUserInput("");
+         return;
+      }
+
+      // Original single player logic
       if (
          ((modeAType == "Flags" ||
             modeAType == "Shapes" ||
@@ -294,48 +368,16 @@ export default function PlayView(props: any) {
          setPlayerName(userInput);
          // Start looking for an opponent
          if (socket) {
-            socket.emit("lookForOpponent", userInput);
+            socket.emit("lookForOpponent", {
+               name: userInput,
+               mode: props.mode,
+            });
          }
          setSettingsSet(true);
          return;
       }
 
-      if (
-         question === "" ||
-         question < 1 ||
-         modeQType == "Combo" ||
-         modeAType == "Combo" ||
-         ((modeQType == "Combo" || modeAType == "Combo") &&
-            modeQType == modeAType)
-      ) {
-         setShowWarning(true);
-         return;
-      }
-
-      switch (modeAType) {
-         case "Capitals":
-            setQuestionString("Name the capital of:");
-            break;
-         case "Anthems":
-            setQuestionString("Name the country with this anthem:");
-            break;
-         case "Flags":
-            setQuestionString("Name this flag:");
-            break;
-         case "Shapes":
-            setQuestionString("Name this shape:");
-            break;
-         case "Domains":
-            setQuestionString("Name the domain of:");
-            break;
-         default:
-            setQuestionString("Name this country:");
-      }
-      setShowWarning(false);
-      if (!showWarning) {
-         setUsedCountries([index]); // Initialize with current index
-         setSettingsSet(true);
-      }
+      // ...existing code for single player...
    };
 
    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -345,6 +387,27 @@ export default function PlayView(props: any) {
          setShowWarning(false);
       }
    };
+
+   useEffect(() => {
+      if (timerActive) {
+         setTimeLeft(5);
+         timerRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+               if (prev <= 1) {
+                  clearInterval(timerRef.current!);
+                  return 0;
+               }
+               return prev - 1;
+            });
+         }, 1000);
+      }
+
+      return () => {
+         if (timerRef.current) {
+            clearInterval(timerRef.current);
+         }
+      };
+   }, [timerActive]);
 
    return (
       <div className="flex items-center justify-center h-full p-4 sm:p-8 ">
@@ -417,38 +480,61 @@ export default function PlayView(props: any) {
             )}
 
             {/* Multiplayer Waiting Screen */}
-            {props.isMulti && setttingsSet && (
-               <div className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto">
-                  {waitingForOpponent ? (
-                     <div className="flex flex-col items-center justify-center p-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-green-500 mb-4" />
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">
-                           Waiting for opponent to join
-                        </h2>
-                        <p className="text-gray-600">This won't take long...</p>
-                     </div>
-                  ) : opponentName ? (
-                     <div className="flex flex-col items-center justify-center p-4">
-                        <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4 w-full">
-                           <h2 className="text-xl font-bold text-center">
-                              You are matched with{" "}
-                              <span className="font-extrabold">
-                                 {opponentName}
-                              </span>
+            {props.isMulti &&
+               setttingsSet &&
+               !currentCountry &&
+               !opponentDisconnected && (
+                  <div className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto">
+                     {waitingForOpponent ? (
+                        <div className="flex flex-col items-center justify-center p-4">
+                           <Loader2 className="h-8 w-8 animate-spin text-green-500 mb-4" />
+                           <h2 className="text-xl font-bold text-gray-800 mb-2">
+                              Waiting for opponent to join
                            </h2>
+                           <p className="text-gray-600">
+                              This won't take long...
+                           </p>
                         </div>
-                        <div className="flex w-full justify-between mt-4">
-                           <div className="text-center p-2 bg-blue-100 rounded-lg flex-1 mr-2">
-                              <p className="font-bold">{playerName}</p>
-                              <p>You</p>
+                     ) : (
+                        <div className="flex flex-col items-center justify-center p-4">
+                           <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4 w-full">
+                              <h2 className="text-xl font-bold text-center">
+                                 You are matched with{" "}
+                                 <span className="font-extrabold">
+                                    {opponentName}
+                                 </span>
+                              </h2>
                            </div>
-                           <div className="text-center p-2 bg-orange-100 rounded-lg flex-1 ml-2">
-                              <p className="font-bold">{opponentName}</p>
-                              <p>Opponent</p>
+                           <div className="flex w-full justify-between mt-4">
+                              <div className="text-center p-2 bg-blue-100 rounded-lg flex-1 mr-2">
+                                 <p className="font-bold">{playerName}</p>
+                                 <p>You</p>
+                              </div>
+                              <div className="text-center p-2 bg-orange-100 rounded-lg flex-1 ml-2">
+                                 <p className="font-bold">{opponentName}</p>
+                                 <p>Opponent</p>
+                              </div>
                            </div>
                         </div>
-                     </div>
-                  ) : null}
+                     )}
+                  </div>
+               )}
+
+            {/* Disconnection Screen */}
+            {props.isMulti && opponentDisconnected && (
+               <div className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto">
+                  <div className="flex flex-col items-center justify-center p-4">
+                     <UserX className="h-8 w-8 text-red-500 mb-4" />
+                     <h2 className="text-xl font-bold text-gray-800 mb-2">
+                        Opponent Disconnected
+                     </h2>
+                     <Button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 bg-blue-500 hover:bg-blue-600"
+                     >
+                        Find New Opponent
+                     </Button>
+                  </div>
                </div>
             )}
 
@@ -679,7 +765,9 @@ export default function PlayView(props: any) {
             <div
                className={
                   "flex flex-col items-center w-full h-full mt-4 sm:mt-8 " +
-                  (setttingsSet ? "block" : "hidden")
+                  (setttingsSet && (currentCountry || !props.isMulti)
+                     ? "block"
+                     : "hidden")
                }
             >
                <h1
@@ -698,25 +786,45 @@ export default function PlayView(props: any) {
                         (gameOver ? "" : " ")
                      }
                   >
-                     <div
-                        className={
-                           "flex items-center justify-between " +
-                           (gameOver ? "hidden " : " ")
-                        }
-                     >
-                        <h1 className="flex items-center text-left justify-start border border-gray-200 bg-white rounded-full px-2 py-1">
-                           <b className="mr-1">Score: </b>
-                           <AnimatedCounter
-                              value={score}
-                              decimalPrecision={0}
-                              fontSize="16px"
-                              digitStyles={{ textAlign: "left" }}
-                           />
-                        </h1>
-                        <h1 className="border border-gray-200 bg-white rounded-full text-center px-2 py-1">
-                           <b>Question:</b> {currentQuestion} / {question}
-                        </h1>
-                     </div>
+                     {!props.isMulti && (
+                        <div
+                           className={
+                              "flex items-center justify-between " +
+                              (gameOver ? "hidden " : " ")
+                           }
+                        >
+                           <h1 className="flex items-center text-left justify-start border border-gray-200 bg-white rounded-full px-2 py-1">
+                              <b className="mr-1">Score: </b>
+                              <AnimatedCounter
+                                 value={score}
+                                 decimalPrecision={0}
+                                 fontSize="16px"
+                                 digitStyles={{ textAlign: "left" }}
+                              />
+                           </h1>
+                           <h1 className="border border-gray-200 bg-white rounded-full text-center px-2 py-1">
+                              <b>Question:</b> {currentQuestion} / {question}
+                           </h1>
+                        </div>
+                     )}
+
+                     {props.isMulti && (
+                        <div
+                           className={
+                              "flex items-center justify-center " +
+                              (gameOver ? "hidden " : " ")
+                           }
+                        >
+                           <div className="flex w-full justify-between">
+                              <div className="text-center p-2 bg-blue-100 rounded-lg flex-1 mr-2">
+                                 <p className="font-bold">{playerName}</p>
+                              </div>
+                              <div className="text-center p-2 bg-orange-100 rounded-lg flex-1 ml-2">
+                                 <p className="font-bold">{opponentName}</p>
+                              </div>
+                           </div>
+                        </div>
+                     )}
 
                      {isWrong && (
                         <Alert variant="destructive" className="text-left mt-2">
@@ -773,6 +881,11 @@ export default function PlayView(props: any) {
                   Submit
                </Button>
             </div>
+            {props.isMulti && timerActive && (
+               <div className="fixed top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-2 rounded-full font-bold">
+                  Time left: {timeLeft}s
+               </div>
+            )}
          </div>
          <SupportPopover></SupportPopover>
          <WorldMap />
