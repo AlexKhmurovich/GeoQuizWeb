@@ -24,6 +24,8 @@ import WorldMap from "@/assets/WorldMap";
 
 import SupportPopover from "./SupportPopover";
 
+import Header from "@/components/Header";
+
 import { ChevronLeft } from "lucide-react";
 
 import titleize from "titleize";
@@ -242,7 +244,6 @@ export default function PlayView(props: any) {
          setIsCorrect(false);
          setIsWrong(false);
          setGameOver(true);
-         // Reset used countries when game is over
          setUsedCountries([]);
          return;
       }
@@ -306,19 +307,7 @@ export default function PlayView(props: any) {
    return (
       <div className="flex items-center justify-center h-full p-4 sm:p-8 ">
          <div className="flex flex-col items-center w-full h-full">
-            <div className="flex justify-between items-center w-full">
-               <a href="/" className="flex-1 flex items-start">
-                  <Button variant={"link"}>
-                     <ChevronLeft />
-                     Home
-                  </Button>
-               </a>
-               <h1 className="text-xl sm:text-2xl font-bold m-2">
-                  {props.mode}
-               </h1>
-               <div className="w-6 flex-1"></div>
-            </div>
-            <Separator className="mb-4" />
+            <Header mode={props.mode} isMulti={props.isMulti} />
 
             <div
                className={
@@ -503,7 +492,7 @@ export default function PlayView(props: any) {
                </div>
             </div>
 
-            {/* V0 */}
+            {/* Game */}
             <div
                className={
                   "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +

@@ -166,7 +166,11 @@ export default function Home() {
                         title={mode.title}
                         description={mode.description}
                         img={mode.imageSrc}
-                        link={`/game/${mode.id}`}
+                        link={
+                           selectedMode == "Singleplayer"
+                              ? `/single/${mode.id}`
+                              : `/multi/${mode.id}`
+                        }
                      />
                   )
             )}

@@ -8,7 +8,8 @@ function App() {
       <Router>
          <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/game/:modeId" element={<Game />} />
+            <Route path="/single/:modeId" element={<Game isMulti={false} />} />
+            <Route path="/multi/:modeId" element={<Game isMulti={true} />} />
          </Routes>
       </Router>
    );
