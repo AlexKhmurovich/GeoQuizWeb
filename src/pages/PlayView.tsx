@@ -12,7 +12,7 @@ import {
    SelectValue,
 } from "@/components/ui/select";
 
-import { Trophy, RotateCcw } from "lucide-react";
+import { Trophy, RotateCcw, Loader2 } from "lucide-react";
 
 import { Settings, Play, AlertCircle, BadgeCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,6 +26,7 @@ import SupportPopover from "./SupportPopover";
 import Header from "@/components/Header";
 
 import titleize from "titleize";
+import { io } from "socket.io-client";
 
 export default function PlayView(props: any) {
    const [index, setIndex] = useState(
@@ -55,6 +56,12 @@ export default function PlayView(props: any) {
 
    const [penalizeMistakes, setPenalizeMistakes] = useState(false);
 
+   // New states for multiplayer
+   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+   const [opponentName, setOpponentName] = useState("");
+   const [socket, setSocket] = useState<any>(null);
+   const [playerName, setPlayerName] = useState("");
+
    const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
 
    const audioRef = useRef<HTMLAudioElement>(null);
@@ -65,6 +72,30 @@ export default function PlayView(props: any) {
          audioRef.current.currentTime = 0; // Reset the audio to the beginning
       }
    }, [gameOver]);
+
+   // Socket connection setup
+   useEffect(() => {
+      if (props.isMulti && !socket) {
+         // Connect to the socket server
+         const newSocket = io("http://localhost:3000");
+         setSocket(newSocket);
+
+         // Socket event listeners
+         newSocket.on("waiting", () => {
+            setWaitingForOpponent(true);
+         });
+
+         newSocket.on("opponentFound", (name) => {
+            setWaitingForOpponent(false);
+            setOpponentName(name);
+         });
+
+         // Cleanup on unmount
+         return () => {
+            newSocket.disconnect();
+         };
+      }
+   }, [props.isMulti]);
 
    // Replace the old getRandomCountry function with this improved version
    function getRandomCountry() {
@@ -255,6 +286,20 @@ export default function PlayView(props: any) {
    const [showWarning, setShowWarning] = useState(false);
 
    const handleStart = () => {
+      if (props.isMulti) {
+         if (userInput.trim() === "") {
+            setShowWarning(true);
+            return;
+         }
+         setPlayerName(userInput);
+         // Start looking for an opponent
+         if (socket) {
+            socket.emit("lookForOpponent", userInput);
+         }
+         setSettingsSet(true);
+         return;
+      }
+
       if (
          question === "" ||
          question < 1 ||
@@ -305,189 +350,299 @@ export default function PlayView(props: any) {
       <div className="flex items-center justify-center h-full p-4 sm:p-8 ">
          <div className="flex flex-col items-center w-full h-full">
             <Header mode={props.mode} isMulti={props.isMulti} />
+            {props.isMulti && (
+               <div
+                  className={
+                     "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +
+                     (!setttingsSet ? "flex flex-col" : "hidden")
+                  }
+               >
+                  <div className="flex items-center space-x-2 text-gray-800 mb-4">
+                     <Settings className="w-5 h-5" aria-hidden="true" />
+                     <h2 className="text-xl font-bold">Quiz Settings</h2>
+                  </div>
 
-            <div
-               className={
-                  "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +
-                  (!setttingsSet ? "flex flex-col" : "hidden")
-               }
-            >
-               <div className="flex items-center space-x-2 text-gray-800 mb-4">
-                  <Settings className="w-5 h-5" aria-hidden="true" />
-                  <h2 className="text-xl font-bold">Quiz Settings</h2>
-               </div>
-
-               <div className="space-y-4">
-                  {props.mode == "Combo" ? (
+                  <div className="space-y-4">
                      <div className="text-left">
-                        <div className="flex w-100 space-x-4">
-                           <div className="flex-1">
-                              <Label
-                                 htmlFor="questionType"
-                                 className="text-gray-700 text-left"
-                              >
-                                 Question Type
-                              </Label>
-                              <Select
-                                 onValueChange={(value: string) => {
-                                    setModeQType(value);
-                                 }}
-                              >
-                                 <SelectTrigger id="questionType">
-                                    <SelectValue placeholder="Select" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                    <SelectItem value="Flags">Flag</SelectItem>
-                                    <SelectItem value="Shapes">
-                                       Shape
-                                    </SelectItem>
-                                    <SelectItem value="Anthems">
-                                       Anthem
-                                    </SelectItem>
-                                    <SelectItem value="Countries">
-                                       Country
-                                    </SelectItem>
-                                 </SelectContent>
-                              </Select>
-                           </div>
+                        <Label
+                           htmlFor="userName"
+                           className="text-gray-700 text-left"
+                        >
+                           Enter your name
+                        </Label>
+                        <Input
+                           id="userName"
+                           type="text"
+                           value={userInput}
+                           onChange={(e) => setUserInput(e.target.value)}
+                           className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
+                           aria-describedby="userNameError"
+                        />
+                     </div>
+                  </div>
 
-                           <div className="flex-1">
-                              <Label
-                                 htmlFor="answerType"
-                                 className="text-gray-700 text-left"
-                              >
-                                 Answer Type
-                              </Label>
-                              <Select
-                                 onValueChange={(value: string) => {
-                                    setModeAType(value);
-                                 }}
-                              >
-                                 <SelectTrigger id="answerType">
-                                    <SelectValue placeholder="Select" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                    <SelectItem value="Capitals">
-                                       Capital
-                                    </SelectItem>
-                                    <SelectItem value="Domains">
-                                       Domain
-                                    </SelectItem>
-                                    <SelectItem value="Countries">
-                                       Country
-                                    </SelectItem>
-                                 </SelectContent>
-                              </Select>
+                  <div className="mt-4" aria-live="polite">
+                     {showWarning && (
+                        <Alert
+                           variant="destructive"
+                           className="mb-4 py-2 text-sm"
+                           id="userNameError"
+                        >
+                           <AlertCircle
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                           />
+                           <AlertDescription>
+                              Please enter your name
+                           </AlertDescription>
+                        </Alert>
+                     )}
+
+                     <Button
+                        onClick={() => {
+                           if (userInput.trim() === "") {
+                              setShowWarning(true);
+                              return;
+                           }
+                           setShowWarning(false);
+                           handleStart();
+                        }}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-full transition-all duration-200 ease-in-out flex items-center justify-center h-12 hover:scale-[0.98] active:scale-[0.97]"
+                     >
+                        <Play className="w-4 h-4 mr-2" aria-hidden="true" />
+                        Look for Opponent
+                     </Button>
+                  </div>
+               </div>
+            )}
+
+            {/* Multiplayer Waiting Screen */}
+            {props.isMulti && setttingsSet && (
+               <div className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto">
+                  {waitingForOpponent ? (
+                     <div className="flex flex-col items-center justify-center p-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-green-500 mb-4" />
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">
+                           Waiting for opponent to join
+                        </h2>
+                        <p className="text-gray-600">This won't take long...</p>
+                     </div>
+                  ) : opponentName ? (
+                     <div className="flex flex-col items-center justify-center p-4">
+                        <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4 w-full">
+                           <h2 className="text-xl font-bold text-center">
+                              You are matched with{" "}
+                              <span className="font-extrabold">
+                                 {opponentName}
+                              </span>
+                           </h2>
+                        </div>
+                        <div className="flex w-full justify-between mt-4">
+                           <div className="text-center p-2 bg-blue-100 rounded-lg flex-1 mr-2">
+                              <p className="font-bold">{playerName}</p>
+                              <p>You</p>
+                           </div>
+                           <div className="text-center p-2 bg-orange-100 rounded-lg flex-1 ml-2">
+                              <p className="font-bold">{opponentName}</p>
+                              <p>Opponent</p>
                            </div>
                         </div>
                      </div>
-                  ) : (
-                     ""
-                  )}
-                  <div className="text-left">
-                     <Label
-                        htmlFor="numQuestions"
-                        className="text-gray-700 text-left"
-                     >
-                        Number of Questions
-                     </Label>
-                     <Input
-                        id="numQuestions"
-                        type="number"
-                        min="1"
-                        value={question}
-                        onChange={handleInputChange}
-                        className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
-                        aria-describedby="numQuestionsError"
-                     />
-                  </div>
-                  <div className="flex flex-col space-y-2">
-                     <div className="flex items-center">
-                        <Switch
-                           id="penalizeWrong"
-                           checked={penalizeMistakes}
-                           onCheckedChange={(checked) =>
-                              setPenalizeMistakes(checked)
-                           }
-                        />
-                        <Label
-                           htmlFor="penalizeWrong"
-                           className="text-gray-700 ml-2"
-                        >
-                           -1 for mistakes
-                        </Label>
-                     </div>
+                  ) : null}
+               </div>
+            )}
 
-                     {(props.mode == "Flags" ||
-                        (props.mode == "Combo" &&
-                           (modeQType == "Flags" || modeQType == "Shapes")) ||
-                        props.mode == "Shapes") && (
+            {!props.isMulti && (
+               <div
+                  className={
+                     "bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 w-full max-w-sm mx-auto " +
+                     (!setttingsSet ? "flex flex-col" : "hidden")
+                  }
+               >
+                  <div className="flex items-center space-x-2 text-gray-800 mb-4">
+                     <Settings className="w-5 h-5" aria-hidden="true" />
+                     <h2 className="text-xl font-bold">Quiz Settings</h2>
+                  </div>
+
+                  <div className="space-y-4">
+                     {props.mode == "Combo" ? (
+                        <div className="text-left">
+                           <div className="flex w-100 space-x-4">
+                              <div className="flex-1">
+                                 <Label
+                                    htmlFor="questionType"
+                                    className="text-gray-700 text-left"
+                                 >
+                                    Question Type
+                                 </Label>
+                                 <Select
+                                    onValueChange={(value: string) => {
+                                       setModeQType(value);
+                                    }}
+                                 >
+                                    <SelectTrigger id="questionType">
+                                       <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                       <SelectItem value="Flags">
+                                          Flag
+                                       </SelectItem>
+                                       <SelectItem value="Shapes">
+                                          Shape
+                                       </SelectItem>
+                                       <SelectItem value="Anthems">
+                                          Anthem
+                                       </SelectItem>
+                                       <SelectItem value="Countries">
+                                          Country
+                                       </SelectItem>
+                                    </SelectContent>
+                                 </Select>
+                              </div>
+
+                              <div className="flex-1">
+                                 <Label
+                                    htmlFor="answerType"
+                                    className="text-gray-700 text-left"
+                                 >
+                                    Answer Type
+                                 </Label>
+                                 <Select
+                                    onValueChange={(value: string) => {
+                                       setModeAType(value);
+                                    }}
+                                 >
+                                    <SelectTrigger id="answerType">
+                                       <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                       <SelectItem value="Capitals">
+                                          Capital
+                                       </SelectItem>
+                                       <SelectItem value="Domains">
+                                          Domain
+                                       </SelectItem>
+                                       <SelectItem value="Countries">
+                                          Country
+                                       </SelectItem>
+                                    </SelectContent>
+                                 </Select>
+                              </div>
+                           </div>
+                        </div>
+                     ) : (
+                        ""
+                     )}
+                     <div className="text-left">
+                        <Label
+                           htmlFor="numQuestions"
+                           className="text-gray-700 text-left"
+                        >
+                           Number of Questions
+                        </Label>
+                        <Input
+                           id="numQuestions"
+                           type="number"
+                           min="1"
+                           value={question}
+                           onChange={handleInputChange}
+                           className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
+                           aria-describedby="numQuestionsError"
+                        />
+                     </div>
+                     <div className="flex flex-col space-y-2">
                         <div className="flex items-center">
                            <Switch
-                              id="blinkModeToggle"
-                              checked={blinkMode}
+                              id="penalizeWrong"
+                              checked={penalizeMistakes}
                               onCheckedChange={(checked) =>
-                                 setBlinkMode(checked)
+                                 setPenalizeMistakes(checked)
                               }
                            />
                            <Label
-                              htmlFor="blinkModeToggle"
+                              htmlFor="penalizeWrong"
                               className="text-gray-700 ml-2"
                            >
-                              Blink Mode
+                              -1 for mistakes
                            </Label>
                         </div>
+
+                        {(props.mode == "Flags" ||
+                           (props.mode == "Combo" &&
+                              (modeQType == "Flags" ||
+                                 modeQType == "Shapes")) ||
+                           props.mode == "Shapes") && (
+                           <div className="flex items-center">
+                              <Switch
+                                 id="blinkModeToggle"
+                                 checked={blinkMode}
+                                 onCheckedChange={(checked) =>
+                                    setBlinkMode(checked)
+                                 }
+                              />
+                              <Label
+                                 htmlFor="blinkModeToggle"
+                                 className="text-gray-700 ml-2"
+                              >
+                                 Blink Mode
+                              </Label>
+                           </div>
+                        )}
+
+                        {blinkMode && (
+                           <div className="text-left">
+                              <Label
+                                 htmlFor="blinkTimer"
+                                 className="text-gray-700 text-left"
+                              >
+                                 Blink Timer (s)
+                              </Label>
+                              <Input
+                                 id="blinkTimer"
+                                 type="number"
+                                 min="1"
+                                 value={blinkTimer}
+                                 onChange={(e) =>
+                                    setBlinkTimer(parseFloat(e.target.value))
+                                 }
+                                 className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
+                              />
+                           </div>
+                        )}
+                     </div>
+                  </div>
+
+                  <div className="mt-4" aria-live="polite">
+                     {showWarning && (
+                        <Alert
+                           variant="destructive"
+                           className="mb-4 py-2 text-sm"
+                           id="numQuestionsError"
+                        >
+                           <AlertCircle
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                           />
+                           <AlertDescription>
+                              Please enter a valid number of questions (minimum
+                              1){" "}
+                              {props.mode == "Combo"
+                                 ? "and/or Please select different question and answer types"
+                                 : ""}
+                           </AlertDescription>
+                        </Alert>
                      )}
 
-                     {blinkMode && (
-                        <div className="text-left">
-                           <Label
-                              htmlFor="blinkTimer"
-                              className="text-gray-700 text-left"
-                           >
-                              Blink Timer (s)
-                           </Label>
-                           <Input
-                              id="blinkTimer"
-                              type="number"
-                              min="1"
-                              value={blinkTimer}
-                              onChange={(e) =>
-                                 setBlinkTimer(parseFloat(e.target.value))
-                              }
-                              className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
-                           />
-                        </div>
-                     )}
+                     <Button
+                        onClick={handleStart}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-full transition-all duration-200 ease-in-out flex items-center justify-center h-12 hover:scale-[0.98] active:scale-[0.97]"
+                     >
+                        <Play className="w-4 h-4 mr-2" aria-hidden="true" />
+                        Start Quiz
+                     </Button>
                   </div>
                </div>
-
-               <div className="mt-4" aria-live="polite">
-                  {showWarning && (
-                     <Alert
-                        variant="destructive"
-                        className="mb-4 py-2 text-sm"
-                        id="numQuestionsError"
-                     >
-                        <AlertCircle className="h-4 w-4" aria-hidden="true" />
-                        <AlertDescription>
-                           Please enter a valid number of questions (minimum 1){" "}
-                           {props.mode == "Combo"
-                              ? "and/or Please select different question and answer types"
-                              : ""}
-                        </AlertDescription>
-                     </Alert>
-                  )}
-
-                  <Button
-                     onClick={handleStart}
-                     className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-full transition-all duration-200 ease-in-out flex items-center justify-center h-12 hover:scale-[0.98] active:scale-[0.97]"
-                  >
-                     <Play className="w-4 h-4 mr-2" aria-hidden="true" />
-                     Start Quiz
-                  </Button>
-               </div>
-            </div>
+            )}
 
             {/* Game */}
             <div
