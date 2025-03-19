@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import CountryData from "../CountryData.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,8 +24,6 @@ import WorldMap from "@/assets/WorldMap";
 import SupportPopover from "./SupportPopover";
 
 import Header from "@/components/Header";
-
-import { ChevronLeft } from "lucide-react";
 
 import titleize from "titleize";
 
