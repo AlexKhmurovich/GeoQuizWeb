@@ -10,7 +10,7 @@ const io = new Server(server, {
    cors: {
       origin:
          process.env.NODE_ENV === "production"
-            ? [/\.vercel\.app$/, /localhost/] // Allow Vercel domains and localhost
+            ? [/\.vercel\.app$/, /localhost/, /\.geoquiz\.pro$/] // Allow Vercel domains and localhost
             : "*",
       methods: ["GET", "POST"],
       credentials: true,
