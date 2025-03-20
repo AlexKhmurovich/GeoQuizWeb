@@ -64,6 +64,13 @@ export default function PlayView(props: any) {
    const [opponentDisconnected, setOpponentDisconnected] = useState(false);
    const [currentCountry, setCurrentCountry] = useState<any>(null);
    const [sessionId, setSessionId] = useState<string | null>(null);
+   const [nameInput, setNameInput] = useState(""); // New state for name input
+   const [hasSubmitted, setHasSubmitted] = useState(false); // Add this new state
+   const [multiplayerScore, setMultiplayerScore] = useState(0);
+   const [opponentScore, setOpponentScore] = useState(0);
+   const [showingResults, setShowingResults] = useState(false);
+   const [correctAnswer, setCorrectAnswer] = useState("");
+   const [waitingForResults, setWaitingForResults] = useState(false);
 
    const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
 
@@ -80,12 +87,22 @@ export default function PlayView(props: any) {
       }
    }, [gameOver]);
 
+   // Track input changes
+   useEffect(() => {
+      if (socket && props.isMulti) {
+         socket.emit("inputChange", userInput);
+      }
+   }, [userInput, socket]);
+
    // Socket connection setup
    useEffect(() => {
       if (props.isMulti && !socket) {
          // Connect to the socket server
          const newSocket = io("http://localhost:3000");
          setSocket(newSocket);
+
+         // Remove duplicate event handlers
+         newSocket.removeAllListeners();
 
          // Socket event listeners
          newSocket.on("waiting", () => {
@@ -131,11 +148,23 @@ export default function PlayView(props: any) {
          });
 
          newSocket.on("newQuestion", (data) => {
-            setCurrentCountry(data.country);
-            setUserInput("");
-            setIsCorrect(false);
-            setIsWrong(false);
-            setTimerActive(false);
+            // Ensure clean state for new question
+            setCurrentCountry(null); // Clear current country first
+            setTimeout(() => {
+               setCurrentCountry(data.country); // Set new country in next render cycle
+               setUserInput("");
+               setIsCorrect(false);
+               setIsWrong(false);
+               setTimerActive(false);
+               setHasSubmitted(false);
+               setShowingResults(false);
+               if (timerRef.current) {
+                  clearInterval(timerRef.current);
+                  timerRef.current = null;
+               }
+               setTimeLeft(5);
+               setWaitingForResults(false);
+            }, 0);
          });
 
          newSocket.on("opponentDisconnected", () => {
@@ -146,8 +175,84 @@ export default function PlayView(props: any) {
             setTimerActive(true);
          });
 
+         newSocket.on("answerResult", (data) => {
+            if (data.correct) {
+               setIsCorrect(true);
+            } else {
+               setIsWrong(true);
+            }
+            setMultiplayerScore(data.score);
+         });
+
+         newSocket.on("scoreUpdate", (data) => {
+            const scores = data.scores;
+            // Update opponent's score
+            const opponentId = Object.keys(scores).find(
+               (id) => id !== socket.id
+            );
+            if (opponentId) {
+               setOpponentScore(scores[opponentId]);
+            }
+         });
+
+         newSocket.on("roundResults", (data) => {
+            setShowingResults(true);
+            if (data.isCorrect) {
+               setIsCorrect(true);
+            } else {
+               setIsWrong(true);
+            }
+            setCorrectAnswer(data.correctAnswer);
+
+            // Update both scores
+            setMultiplayerScore(data.scores[socket.id]);
+            const opponentId = Object.keys(data.scores).find(
+               (id) => id !== socket.id
+            );
+            if (opponentId) {
+               setOpponentScore(data.scores[opponentId]);
+            }
+         });
+
+         newSocket.on("answerFeedback", (data) => {
+            if (data.isCorrect) {
+               setIsCorrect(true);
+            } else {
+               setIsWrong(true);
+            }
+            setMultiplayerScore(data.score);
+         });
+
+         newSocket.on("scoreUpdate", (data) => {
+            const opponentId = Object.keys(data.scores).find(
+               (id) => id !== newSocket.id
+            );
+            if (opponentId) {
+               setOpponentScore(data.scores[opponentId]);
+            }
+         });
+
+         newSocket.on("roundComplete", (data) => {
+            const socketId = socket?.id || newSocket.id;
+            const myResult = data.results[socketId];
+            setIsCorrect(myResult?.isCorrect || false);
+            setIsWrong(!myResult?.isCorrect);
+            setMultiplayerScore(data.scores[socketId]);
+
+            const opponentId = Object.keys(data.scores).find(
+               (id) => id !== socketId
+            );
+            if (opponentId) {
+               setOpponentScore(data.scores[opponentId]);
+            }
+
+            setCorrectAnswer(data.correctAnswer);
+            setWaitingForResults(false);
+         });
+
          // Cleanup on unmount
          return () => {
+            newSocket.removeAllListeners();
             newSocket.disconnect();
          };
       }
@@ -308,7 +413,9 @@ export default function PlayView(props: any) {
       if (props.isMulti && sessionId) {
          // For multiplayer, just send the answer and request the next question
          if (socket) {
-            socket.emit("playerAnswered");
+            socket.emit("playerAnswered", userInput);
+            setHasSubmitted(true); // Set submission state when user answers
+            setWaitingForResults(true);
          }
          setUserInput("");
          return;
@@ -361,15 +468,15 @@ export default function PlayView(props: any) {
 
    const handleStart = () => {
       if (props.isMulti) {
-         if (userInput.trim() === "") {
+         if (nameInput.trim() === "") {
             setShowWarning(true);
             return;
          }
-         setPlayerName(userInput);
+         setPlayerName(nameInput);
          // Start looking for an opponent
          if (socket) {
             socket.emit("lookForOpponent", {
-               name: userInput,
+               name: nameInput,
                mode: props.mode,
             });
          }
@@ -377,7 +484,44 @@ export default function PlayView(props: any) {
          return;
       }
 
-      // ...existing code for single player...
+      // Single player mode
+      if (
+         question === "" ||
+         question < 1 ||
+         (props.mode === "Combo" &&
+            (modeQType === "Combo" ||
+               modeAType === "Combo" ||
+               modeQType === modeAType))
+      ) {
+         setShowWarning(true);
+         return;
+      }
+
+      switch (props.mode) {
+         case "Capitals":
+            setQuestionString("Name the capital of:");
+            break;
+         case "Anthems":
+            setQuestionString("Name the country with this anthem:");
+            break;
+         case "Flags":
+            setQuestionString("Name this flag:");
+            break;
+         case "Shapes":
+            setQuestionString("Name this shape:");
+            break;
+         case "Domains":
+            setQuestionString("Name the domain of:");
+            break;
+         default:
+            setQuestionString("Name this country:");
+      }
+
+      setShowWarning(false);
+      if (!showWarning) {
+         setUsedCountries([index]); // Initialize with current index
+         setSettingsSet(true);
+      }
    };
 
    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,6 +539,13 @@ export default function PlayView(props: any) {
             setTimeLeft((prev) => {
                if (prev <= 1) {
                   clearInterval(timerRef.current!);
+                  // Auto-submit when timer reaches 0
+                  if (!hasSubmitted && socket) {
+                     socket.emit("playerAnswered", userInput);
+                     setHasSubmitted(true);
+                     setWaitingForResults(true);
+                     setUserInput("");
+                  }
                   return 0;
                }
                return prev - 1;
@@ -407,7 +558,67 @@ export default function PlayView(props: any) {
             clearInterval(timerRef.current);
          }
       };
-   }, [timerActive]);
+   }, [timerActive, hasSubmitted, userInput, socket]);
+
+   const renderFeedback = () => {
+      if (props.isMulti) {
+         // Only show waiting for results if we haven't received the round results yet
+         if (waitingForResults && !correctAnswer) {
+            return (
+               <Alert className="text-left mt-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <AlertTitle>Waiting for results...</AlertTitle>
+               </Alert>
+            );
+         }
+         // Show feedback if we have either correct answer or results
+         if (isCorrect || isWrong) {
+            return (
+               <Alert
+                  variant={isCorrect ? "default" : "destructive"}
+                  className="text-left mt-2"
+               >
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>{isCorrect ? "Correct!" : "Wrong!"}</AlertTitle>
+                  <AlertDescription>
+                     {isCorrect
+                        ? "Good Job!"
+                        : `The correct answer is ${titleize(correctAnswer)}`}
+                  </AlertDescription>
+               </Alert>
+            );
+         }
+      } else {
+         // Single player feedback
+         if (isCorrect) {
+            return (
+               <Alert
+                  variant="default"
+                  className="text-green-500 text-left mt-2"
+               >
+                  <BadgeCheck
+                     className="h-4 w-4"
+                     aria-hidden="true"
+                     color="rgb(34 197 94)"
+                  />
+                  <AlertTitle>Correct</AlertTitle>
+                  <AlertDescription>Good Job!</AlertDescription>
+               </Alert>
+            );
+         } else if (isWrong) {
+            return (
+               <Alert variant="destructive" className="text-left mt-2">
+                  <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                  <AlertTitle>Wrong</AlertTitle>
+                  <AlertDescription>
+                     The correct answer is {renderCorrectAnswer(modeAType)}
+                  </AlertDescription>
+               </Alert>
+            );
+         }
+      }
+      return null;
+   };
 
    return (
       <div className="flex items-center justify-center h-full p-4 sm:p-8 ">
@@ -436,8 +647,8 @@ export default function PlayView(props: any) {
                         <Input
                            id="userName"
                            type="text"
-                           value={userInput}
-                           onChange={(e) => setUserInput(e.target.value)}
+                           value={nameInput}
+                           onChange={(e) => setNameInput(e.target.value)}
                            className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 mt-1"
                            aria-describedby="userNameError"
                         />
@@ -463,7 +674,7 @@ export default function PlayView(props: any) {
 
                      <Button
                         onClick={() => {
-                           if (userInput.trim() === "") {
+                           if (nameInput.trim() === "") {
                               setShowWarning(true);
                               return;
                            }
@@ -818,49 +1029,26 @@ export default function PlayView(props: any) {
                            <div className="flex w-full justify-between">
                               <div className="text-center p-2 bg-blue-100 rounded-lg flex-1 mr-2">
                                  <p className="font-bold">{playerName}</p>
+                                 <p className="mt-1">
+                                    Score: {multiplayerScore}
+                                 </p>
                               </div>
                               <div className="text-center p-2 bg-orange-100 rounded-lg flex-1 ml-2">
                                  <p className="font-bold">{opponentName}</p>
+                                 <p className="mt-1">Score: {opponentScore}</p>
                               </div>
                            </div>
                         </div>
                      )}
 
-                     {isWrong && (
-                        <Alert variant="destructive" className="text-left mt-2">
-                           <AlertCircle
-                              className="h-4 w-4"
-                              aria-hidden="true"
-                           />
-                           <AlertTitle>Wrong</AlertTitle>
-                           <AlertDescription>
-                              The correct answer is{" "}
-                              {renderCorrectAnswer(modeAType)}
-                           </AlertDescription>
-                        </Alert>
-                     )}
-
-                     {isCorrect && (
-                        <Alert
-                           variant="default"
-                           className="text-green-500 text-left mt-2"
-                        >
-                           <BadgeCheck
-                              className="h-4 w-4 "
-                              aria-hidden="true"
-                              color="rgb(34 197 94)"
-                           />
-                           <AlertTitle>Correct</AlertTitle>
-                           <AlertDescription>Good Job!</AlertDescription>
-                        </Alert>
-                     )}
+                     {renderFeedback()}
                   </div>
                   <Input
                      placeholder="Enter the answer"
                      value={userInput}
                      onChange={(e) => setUserInput(e.target.value)}
                      onKeyDown={(event) => {
-                        if (!isCorrect && !isWrong) {
+                        if (!isCorrect && !isWrong && !hasSubmitted) {
                            if (event.key === "Enter") {
                               checkUserAnswer();
                            }
@@ -868,12 +1056,19 @@ export default function PlayView(props: any) {
                      }}
                      onSubmit={checkUserAnswer}
                      className={
-                        (gameOver ? "hidden " : "block ") + "bg-white mt-2"
+                        (gameOver || (props.isMulti && hasSubmitted)
+                           ? "hidden "
+                           : "block ") + "bg-white mt-2"
                      }
+                     disabled={props.isMulti && hasSubmitted}
                   />
                </div>
                <Button
-                  className={gameOver ? "hidden" : "block"}
+                  className={
+                     gameOver || (props.isMulti && hasSubmitted)
+                        ? "hidden"
+                        : "block"
+                  }
                   onClick={() => {
                      checkUserAnswer();
                   }}

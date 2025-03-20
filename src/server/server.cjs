@@ -37,10 +37,14 @@ function createGameSession(player1Id, player2Id, mode) {
 
    const gameSession = {
       players: [player1Id, player2Id],
+      scores: { [player1Id]: 0, [player2Id]: 0 }, // Add score tracking
       currentCountryIndex: getRandomCountryIndex(),
       mode: mode || "Flags", // Default to Flags if not specified
       usedCountries: [],
       timerActive: false,
+      answeredPlayers: new Set(), // Track which players have answered
+      playerAnswers: {}, // Track player answers
+      results: {}, // Add results storage
    };
 
    gameSessions.set(sessionId, gameSession);
@@ -85,21 +89,27 @@ io.on("connection", (socket) => {
             : { name: playerInfo, mode: "Flags" };
       console.log(`${name} is looking for an opponent in ${mode} mode`);
 
-      // Check if there's already a player waiting
-      if (waitingPlayers.length > 0) {
-         // Match with the first waiting player
-         const opponent = waitingPlayers.shift();
+      // Check if there's already a player waiting with the same mode
+      const matchingOpponent = waitingPlayers.find(
+         (player) => player.mode === mode
+      );
+
+      if (matchingOpponent) {
+         // Remove the matched opponent from waiting queue
+         waitingPlayers.splice(waitingPlayers.indexOf(matchingOpponent), 1);
 
          // Create a game session for these two players
          const sessionId = createGameSession(
             socket.id,
-            opponent.socketId,
+            matchingOpponent.socketId,
             mode
          );
 
          // Store session ID for both players
          socket.data.sessionId = sessionId;
-         const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+         const opponentSocket = io.sockets.sockets.get(
+            matchingOpponent.socketId
+         );
          if (opponentSocket) {
             opponentSocket.data.sessionId = sessionId;
          }
@@ -110,13 +120,13 @@ io.on("connection", (socket) => {
 
          // Notify both players about the match and send initial question
          socket.emit("opponentFound", {
-            name: opponent.name,
+            name: matchingOpponent.name,
             country: country,
             mode: mode,
             sessionId: sessionId,
          });
 
-         io.to(opponent.socketId).emit("opponentFound", {
+         io.to(matchingOpponent.socketId).emit("opponentFound", {
             name: name,
             country: country,
             mode: mode,
@@ -124,7 +134,7 @@ io.on("connection", (socket) => {
          });
 
          console.log(
-            `Matched ${name} with ${opponent.name} in session ${sessionId}`
+            `Matched ${name} with ${matchingOpponent.name} in ${mode} mode`
          );
       } else {
          // Add this player to the waiting queue
@@ -141,38 +151,136 @@ io.on("connection", (socket) => {
    });
 
    // When a player answers and requests the next question
-   socket.on("playerAnswered", () => {
+   socket.on("playerAnswered", (answer) => {
       const sessionId = socket.data.sessionId;
       if (!sessionId) return;
 
       const session = gameSessions.get(sessionId);
-      if (!session || session.timerActive) return;
+      if (!session || session.answeredPlayers.has(socket.id)) return;
 
-      session.timerActive = true;
+      handlePlayerAnswer(sessionId, socket.id, answer);
+   });
 
-      // Notify both players that the timer has started
+   // Add new function to handle answers (both manual and auto)
+   function handlePlayerAnswer(sessionId, playerId, answer) {
+      const session = gameSessions.get(sessionId);
+      if (!session || session.answeredPlayers.has(playerId)) return;
+
+      // Store the player's answer and mark as answered
+      session.playerAnswers[playerId] = answer;
+      session.answeredPlayers.add(playerId);
+
+      // If this is the first player to answer, start the timer
+      if (session.answeredPlayers.size === 1) {
+         session.timerActive = true;
+         session.players.forEach((pid) => {
+            io.to(pid).emit("timerStarted");
+         });
+
+         // Set timer for 5 seconds
+         session.timer = setTimeout(() => {
+            // Force submit any remaining players
+            session.players.forEach((pid) => {
+               if (!session.answeredPlayers.has(pid)) {
+                  const playerSocket = io.sockets.sockets.get(pid);
+                  if (playerSocket?.data.currentInput) {
+                     handlePlayerAnswer(
+                        sessionId,
+                        pid,
+                        playerSocket.data.currentInput
+                     );
+                  } else {
+                     handlePlayerAnswer(sessionId, pid, "");
+                  }
+               }
+            });
+            evaluateAnswersAndProceed(sessionId);
+         }, 5000);
+      }
+
+      // If both players have answered, evaluate immediately
+      if (session.answeredPlayers.size === 2) {
+         if (session.timer) {
+            clearTimeout(session.timer);
+         }
+         evaluateAnswersAndProceed(sessionId);
+      }
+   }
+
+   socket.on("autoSubmitAnswer", (answer) => {
+      const sessionId = socket.data.sessionId;
+      if (!sessionId) return;
+
+      handlePlayerAnswer(sessionId, socket.id, answer);
+   });
+
+   function evaluateAnswersAndProceed(sessionId) {
+      const session = gameSessions.get(sessionId);
+      if (!session || session.evaluating) return; // Add guard against multiple evaluations
+
+      session.evaluating = true; // Mark as evaluating
+      const currentCountry = CountryData[session.currentCountryIndex];
+      const results = {};
+
+      // Evaluate each player's answer
       session.players.forEach((playerId) => {
-         io.to(playerId).emit("timerStarted");
+         const playerAnswer = session.playerAnswers[playerId] || "";
+         const isCorrect = currentCountry.name.includes(
+            playerAnswer.trim().toUpperCase()
+         );
+
+         results[playerId] = {
+            isCorrect,
+            answer: playerAnswer,
+         };
+
+         // Only increment score if not already counted
+         if (isCorrect && !session.scoresCounted) {
+            session.scores[playerId]++;
+         }
       });
 
-      // Wait 5 seconds and then move to next question
+      session.scoresCounted = true; // Mark scores as counted
+
+      // Send results to all players
+      session.players.forEach((playerId) => {
+         io.to(playerId).emit("roundComplete", {
+            results,
+            scores: session.scores,
+            correctAnswer: currentCountry.name[0],
+         });
+      });
+
+      // Move to next question after longer delay to show feedback
       setTimeout(() => {
-         if (!gameSessions.has(sessionId)) return; // Session might have ended
+         moveToNextQuestion(sessionId);
+      }, 3500); // Increased delay to 3.5 seconds
+   }
 
-         session.timerActive = false;
+   function moveToNextQuestion(sessionId) {
+      const session = gameSessions.get(sessionId);
+      if (!session) return;
 
-         // Get next country and send to both players
-         const nextCountry = getNextCountry(sessionId);
-         if (nextCountry) {
-            session.players.forEach((playerId) => {
-               io.to(playerId).emit("newQuestion", {
-                  country: nextCountry,
-                  mode: session.mode,
-               });
-            });
-         }
-      }, 5000);
-   });
+      session.timerActive = false;
+      session.answeredPlayers.clear();
+      session.playerAnswers = {};
+      session.results = {};
+      session.evaluating = false; // Reset evaluating flag
+      session.scoresCounted = false; // Reset scores counted flag
+
+      const nextCountry = getNextCountry(sessionId);
+      if (nextCountry) {
+         const nextQuestionData = {
+            country: nextCountry,
+            mode: session.mode,
+         };
+
+         // Send to all players simultaneously
+         session.players.forEach((playerId) => {
+            io.to(playerId).emit("newQuestion", nextQuestionData);
+         });
+      }
+   }
 
    // Handle disconnections
    socket.on("disconnect", () => {
@@ -205,6 +313,10 @@ io.on("connection", (socket) => {
             gameSessions.delete(playerSessionId);
          }
       }
+   });
+
+   socket.on("inputChange", (currentInput) => {
+      socket.data.currentInput = currentInput;
    });
 });
 
