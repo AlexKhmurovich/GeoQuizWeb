@@ -68,7 +68,7 @@ export default function PlayView(props: any) {
    const [hasSubmitted, setHasSubmitted] = useState(false); // Add this new state
    const [multiplayerScore, setMultiplayerScore] = useState(0);
    const [opponentScore, setOpponentScore] = useState(0);
-   const [showingResults, setShowingResults] = useState(false);
+   const [_showingResults, setShowingResults] = useState(false);
    const [correctAnswer, setCorrectAnswer] = useState("");
    const [waitingForResults, setWaitingForResults] = useState(false);
 
