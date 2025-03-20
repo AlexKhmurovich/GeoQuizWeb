@@ -3,7 +3,7 @@
 import type * as React from "react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Users, Settings } from "lucide-react";
+import { User, Users } from "lucide-react";
 
 interface MenuItem {
    icon: React.ReactNode;
@@ -30,14 +30,14 @@ const menuItems: MenuItem[] = [
          "radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(22,163,74,0.06) 50%, rgba(21,128,61,0) 100%)",
       iconColor: "text-green-500",
    },
-   {
-      icon: <Settings className="h-5 w-5" />,
-      label: "Settings",
-      href: "#",
-      gradient:
-         "radial-gradient(circle, rgba(107,114,128,0.15) 0%, rgba(75,85,99,0.06) 50%, rgba(55,65,81,0) 100%)",
-      iconColor: "text-gray-500",
-   },
+   // {
+   //    icon: <Settings className="h-5 w-5" />,
+   //    label: "Settings",
+   //    href: "#",
+   //    gradient:
+   //       "radial-gradient(circle, rgba(107,114,128,0.15) 0%, rgba(75,85,99,0.06) 50%, rgba(55,65,81,0) 100%)",
+   //    iconColor: "text-gray-500",
+   // },
 ];
 
 const itemVariants = {
