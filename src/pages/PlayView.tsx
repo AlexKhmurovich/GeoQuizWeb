@@ -97,8 +97,13 @@ export default function PlayView(props: any) {
    // Socket connection setup
    useEffect(() => {
       if (props.isMulti && !socket) {
-         // Connect to the socket server
-         const newSocket = io("http://localhost:3000");
+         // Use the current hostname for the socket connection
+         const socketUrl =
+            process.env.NODE_ENV === "production"
+               ? window.location.origin // Use the deployed URL in production
+               : "http://localhost:3000"; // Use localhost in development
+
+         const newSocket = io(socketUrl);
          setSocket(newSocket);
 
          // Remove duplicate event handlers

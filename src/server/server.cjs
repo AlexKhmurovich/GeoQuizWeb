@@ -8,8 +8,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
    cors: {
-      origin: "*", // In production, specify your client's domain
+      origin:
+         process.env.NODE_ENV === "production"
+            ? [/\.vercel\.app$/, /localhost/] // Allow Vercel domains and localhost
+            : "*",
       methods: ["GET", "POST"],
+      credentials: true,
    },
 });
 
@@ -329,3 +333,6 @@ server.listen(PORT, () => {
 app.get("*", (req, res) => {
    res.sendFile(path.join(__dirname, "../../dist/index.html"));
 });
+
+// Export for Vercel serverless functions
+module.exports = server;
