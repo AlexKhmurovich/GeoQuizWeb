@@ -1,16 +1,13 @@
 {
-   "homepage": "https://alexkhmurovich.github.io/GeoQuizWeb/",
    "name": "geo-quiz",
    "private": true,
    "version": "0.0.0",
    "type": "module",
    "scripts": {
-      "predeploy": "npm run build",
-      "deploy": "gh-pages -d dist",
       "dev": "vite",
-      "build": "tsc -b && vite build",
-      "lint": "eslint .",
-      "preview": "vite preview"
+      "build": "tsc && vite build",
+      "preview": "vite preview",
+      "lint": "eslint ."
    },
    "dependencies": {
       "@radix-ui/react-label": "^2.1.0",
