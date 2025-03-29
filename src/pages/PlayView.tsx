@@ -98,12 +98,13 @@ export default function PlayView(props: any) {
    useEffect(() => {
       if (props.isMulti && !socket) {
          // Use the current hostname for the socket connection
-         const socketUrl =
-            process.env.NODE_ENV === "production"
-               ? window.location.origin // Use the deployed URL in production
-               : "http://localhost:3000"; // Use localhost in development
+         const socketUrl = import.meta.env.PROD
+            ? "https://geoquiz.pro"
+            : "http://localhost:3000";
 
-         const newSocket = io(socketUrl);
+         const newSocket = io(socketUrl, {
+            path: "/socket.io",
+         });
          setSocket(newSocket);
 
          // Remove duplicate event handlers
